@@ -1,0 +1,6 @@
+branches:
+  master:
+    tag: ''
+ignore:
+  sha: []
+mode: ContinuousDeployment
