@@ -25,7 +25,6 @@ namespace OctoConfig.Core.Secrets
 		/// <param name="apply">Actually store the value of the variable in the list. Mark as 'false' to only do verification</param>
 		public async Task ReplaceSecrets(List<SecretVariable> vars)
 		{
-			var ret = new List<SecretVariable>();
 			foreach(var item in vars)
 			{
 				var evaluated = item.Value;

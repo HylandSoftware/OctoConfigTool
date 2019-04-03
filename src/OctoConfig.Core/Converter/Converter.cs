@@ -29,48 +29,47 @@ namespace OctoConfig.Core.Converter
 			}
 		}
 
-		private List<SecretVariable> _flatten(string strJson)
+		private List<SecretVariable> flatten(string strJson)
 		{
 			var ret = new List<SecretVariable>();
 			foreach (var obj in JsonConvert.DeserializeObject(strJson) as JObject)
 			{
 				if (obj.Value.HasValues)
 				{
-					ret.AddRange(_explore(obj.Value));
+					ret.AddRange(explore(obj.Value));
 				}
 				else
 				{
-					ret.Add(new SecretVariable(obj.Key, _stringify((JToken) obj.Value)));
+					ret.Add(new SecretVariable(obj.Key, stringify((JToken) obj.Value)));
 				}
 			}
 			return ret;
 		}
 
-		private List<SecretVariable> _explore(JToken obj)
+		private List<SecretVariable> explore(JToken obj)
 		{
 			var ret = new List<SecretVariable>();
 			if (_args.MergeArrays && obj is Newtonsoft.Json.Linq.JArray arr)
 			{
-				var value = _stringify(arr);
+				var value = stringify(arr);
 				ret.Add(new SecretVariable(obj.Path, value));
 			}
 			else if (obj.HasValues)
 			{
 				foreach (var child in obj.Children())
 				{
-					ret.AddRange(_explore(child));
+					ret.AddRange(explore(child));
 				}
 			}
 			else
 			{
 				var varName = obj.Path;
-				var t = obj.GetType();
-				ret.Add(new SecretVariable(varName, _stringify(obj)));
+				ret.Add(new SecretVariable(varName, stringify(obj)));
 			}
 			return ret;
 		}
 
-		private string _stringify(JToken obj)
+		private string stringify(JToken obj)
 		{
 			if (obj is Newtonsoft.Json.Linq.JArray arr)
 			{
@@ -90,7 +89,7 @@ namespace OctoConfig.Core.Converter
 		/// <returns>A list of SecretVariable containing name and value</returns>
 		public List<SecretVariable> Convert(string json)
 		{
-			var ret = _flatten(json);
+			var ret = flatten(json);
 
 			ret.ForEach(
 				x =>

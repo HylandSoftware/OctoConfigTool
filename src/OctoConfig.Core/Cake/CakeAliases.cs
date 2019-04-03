@@ -5,6 +5,7 @@ using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Commands;
 using OctoConfig.Core.DependencySetup;
 
+#pragma warning disable IDE0060 // Remove unused parameter
 namespace OctoConfig.Cake
 {
 	[CakeAliasCategory("OctoConfig")]
@@ -94,3 +95,4 @@ namespace OctoConfig.Cake
 		}
 	}
 }
+#pragma warning restore IDE0060 // Remove unused parameter

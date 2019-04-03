@@ -1,6 +1,8 @@
+#addin "nuget:?package=Cake.Docker&version=0.9.4"
+
 using System.Linq;
 
-void BuildPackages(GitVersion version)
+void BuildPackages(string version)
 {
 	var packSettings = new DotNetCorePackSettings {
 		OutputDirectory = "build/",
@@ -10,7 +12,7 @@ void BuildPackages(GitVersion version)
 	};
 
 	packSettings.MSBuildSettings.Properties["PackageVersion"] =
-			new [] { version.NuGetVersionV2 };
+			new [] { version };
 
 	DotNetCorePack(
 		project: "src/OctoConfig.Core/OctoConfig.Core.csproj",
@@ -49,9 +51,14 @@ void PublishPackages(string source, string apiKey)
 	}
 }
 
-const string imageName = "hcr.io/cloud-platform/octoconfigtool";
+string[] GetTags(string version)
+{
+	return new[]{ $"{imageName}:{version}", $"{imageName}:latest" };
+}
 
-void PrepareForDockerBuild(GitVersion version)
+const string imageName = "hylandsoftware/octoconfigtool";
+
+void BuildDocker(string version)
 {
 	var publishSettings = new DotNetCorePublishSettings {
 		Framework = "netcoreapp2.1",
@@ -61,9 +68,21 @@ void PrepareForDockerBuild(GitVersion version)
 	};
 
 	publishSettings.MSBuildSettings.Properties["PackageVersion"] =
-			new [] { version.NuGetVersionV2 };
+			new [] { version };
 
 	DotNetCorePublish(
 		project: "src/OctoConfigTool/OctoConfigTool.csproj",
 		settings: publishSettings);
+
+	DockerBuild(new DockerImageBuildSettings {
+        Tag = GetTags(version)
+    }, ".");
+}
+
+void PublishDocker(string version)
+{
+	foreach(var tag in GetTags(version))
+	{
+		DockerPush(tag);
+	}
 }

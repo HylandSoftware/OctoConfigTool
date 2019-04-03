@@ -1,11 +1,13 @@
-#l publish.cake
-#l helpers.cake
+#addin "nuget:?package=Cake.MiniCover&version=0.29.0-next20180721071547&prerelease"
 
-var version = GetSourceVersion();
+#l publish.cake
 
 var target = Argument("target", "build");
+var configuration = Argument("configuration", "Release");
+var version = Argument<string>("version", "ci");
 
 System.IO.Directory.SetCurrentDirectory(MakeAbsolute(Directory("../")).FullPath);
+SetMiniCoverToolsProject("./ci/minicover.csproj");
 
 var sln = "OctoConfigTool.sln";
 var nugetPublishUrl = Argument<string>("nugetPublishUrl", null);
@@ -13,19 +15,18 @@ var nugetApiKey = Argument<string>("nugetApiKey", null);
 
 Setup(context =>
 	{
-		Information("Version: {0}", version.NuGetVersionV2);
-		Information("Branch:  {0}", version.BranchName);
+		Information("Version: {0}", version);
+		Verbose("Current working directory {0}", System.IO.Directory.GetCurrentDirectory());
 	});
 
 Task("clean")
 	.Does(() =>
 	{
-		Verbose(System.IO.Directory.GetCurrentDirectory());
 		DotNetCoreClean(
 			project: sln,
 			settings: new DotNetCoreCleanSettings {
 				Verbosity = DotNetCoreVerbosity.Quiet,
-				Configuration = "Release"
+				Configuration = configuration
 			});
 		CleanDirectories(new []{ "build" });
 	});
@@ -42,58 +43,72 @@ Task("build")
 			project: sln,
 			settings: new DotNetCoreBuildSettings {
 				Verbosity = DotNetCoreVerbosity.Quiet,
-				Configuration = "Release"
+				Configuration = configuration
 			});
 	});
 
 Task("test")
 	.Does(() =>
 	{
-		Information("Running unit tests");
-		var resultDir = MakeAbsolute(Directory("build/test_results"));
-		var testProjects = GetFiles("test/**/*Tests*.csproj");
-		foreach(var testProject in testProjects)
-		{
-			DotNetCoreTest(
-				project: testProject.FullPath,
-				settings: new DotNetCoreTestSettings {
-					Logger = "trx;LogFileName=UnitTests.trx",
-					WorkingDirectory = "build",
-					Configuration = "Release",
-					NoBuild = true,
-					ArgumentCustomization = a =>
-						a.Append($"-r {resultDir.FullPath}")
-				});
-		}
+		MiniCover(tool =>
+			{
+				foreach(var proj in GetFiles("./test/**/*.csproj"))
+				{
+					Information("Testing Project: " + proj);
+					DotNetCoreTest(proj.FullPath, new DotNetCoreTestSettings
+					{
+						NoBuild = true,
+						Configuration = configuration,
+						ArgumentCustomization = args => args.Append("--no-restore")
+					});
+				}
+			},
+			new MiniCoverSettings()
+				.WithAssembliesMatching("./test/**/*.dll")
+				.WithSourcesMatching("./src/**/*.cs")
+				.WithNonFatalThreshold()
+				.GenerateReport(ReportType.CONSOLE)
+		);
 	});
+
+Task("Coveralls")
+    .WithCriteria(TravisCI.IsRunningOnTravisCI)
+    .Does(() =>
+{
+    MiniCoverReport(new MiniCoverSettings()
+        .WithCoverallsSettings(c => c.UseTravisDefaults())
+        .GenerateReport(ReportType.COVERALLS)
+    );
+});
 
 Task("package")
 	.Does(() =>
 	{
 		BuildPackages(version);
+		BuildDocker(version);
 	});
 
 Task("publish")
 	.Does(() =>
 	{
 		PublishPackages(nugetPublishUrl, nugetApiKey);
+		PublishDocker(version);
 	});
 
-Task("prepare-docker")
-	.Does(() =>
-	{
-		PrepareForDockerBuild(version);
-	});
-
-Task("jenkins-build")
+Task("ci-test")
 	.IsDependentOn("clean")
-	.IsDependentOn("build");
-
-Task("jenkins-test")
+	.IsDependentOn("build")
 	.IsDependentOn("test");
 
-Task("jenkins-publish-nuget")
-	.IsDependentOn("package")
-	.IsDependentOn("publish");
+Task("ci-publish")
+	.IsDependentOn("clean")
+	.IsDependentOn("build")
+	.IsDependentOn("test")
+	.IsDependentOn("package");
+	//.IsDependentOn("publish");
+
+Task("Default")
+    .IsDependentOn("ci-test");
+
 
 RunTarget(target);

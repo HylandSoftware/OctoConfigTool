@@ -27,7 +27,7 @@ namespace OctoConfig.Core.Octopus
 			var set = await _octopusRepository.VariableSets.Get(lib.VariableSetId).ConfigureAwait(false);
 			var count = set.Variables.Count;
 			set.Variables.Clear();
-			set = await _octopusRepository.VariableSets.Modify(set).ConfigureAwait(false);
+			await _octopusRepository.VariableSets.Modify(set).ConfigureAwait(false);
 			return count;
 		}
 
@@ -58,7 +58,7 @@ namespace OctoConfig.Core.Octopus
 			}
 			if(apply)
 			{
-				set = await _octopusRepository.VariableSets.Modify(set).ConfigureAwait(false);
+				await _octopusRepository.VariableSets.Modify(set).ConfigureAwait(false);
 			}
 		}
 	}

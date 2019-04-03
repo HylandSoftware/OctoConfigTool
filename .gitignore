@@ -505,3 +505,6 @@ build/
 gitversion.json
 launchSettings.json
 !log/
+
+# MiniCover
+*coverage*

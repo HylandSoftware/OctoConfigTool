@@ -6,12 +6,10 @@ namespace OctoConfig.Core.Commands
 {
 	public class ClearTenantCommand
 	{
-		private readonly ClearTenantArgs _args;
 		private readonly TenantClearer _tenantClearer;
 
-		public ClearTenantCommand(ClearTenantArgs args, TenantClearer tenantClearer)
+		public ClearTenantCommand(TenantClearer tenantClearer)
 		{
-			_args = args ?? throw new System.ArgumentNullException(nameof(args));
 			_tenantClearer = tenantClearer ?? throw new System.ArgumentNullException(nameof(tenantClearer));
 		}
 
