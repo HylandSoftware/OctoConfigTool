@@ -18,5 +18,5 @@ install:
 script:
 - ./ci/travis.sh
 
-# after_script:
-# - ./build.sh -t Coveralls
+after_script:
+- ./build.sh -t Coveralls

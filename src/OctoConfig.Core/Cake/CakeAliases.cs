@@ -79,7 +79,7 @@ namespace OctoConfig.Cake
 		}
 
 		[CakeMethodAlias]
-		public static void ClearTenantConfig(this ICakeContext context, TenantTargetArgs args)
+		public static void ClearTenantConfig(this ICakeContext context, ClearTenantArgs args)
 		{
 			DependencyConfig.Setup(args).GetAwaiter().GetResult();
 			var cmd = DependencyConfig.Container.GetService<ClearTenantCommand>();
@@ -87,7 +87,7 @@ namespace OctoConfig.Cake
 		}
 
 		[CakeMethodAlias]
-		public static void ClearProjectConfig(this ICakeContext context, TenantTargetArgs args)
+		public static void ClearProjectConfig(this ICakeContext context, ClearProjectArgs args)
 		{
 			DependencyConfig.Setup(args).GetAwaiter().GetResult();
 			var cmd = DependencyConfig.Container.GetService<ClearProjectCommand>();
