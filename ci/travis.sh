@@ -3,7 +3,7 @@ set -euo pipefail
 
 SCRIPT_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 CAKE_TASK=ci-test
-IMAGE_TAG=ci
+IMAGE_TAG=0.0.1-ci
 
 if [ "${TRAVIS_PULL_REQUEST}" = "false" ] && [ "${TRAVIS_BRANCH}" = "master" ]; then
     CAKE_TASK=ci-publish
