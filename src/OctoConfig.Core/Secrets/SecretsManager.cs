@@ -43,14 +43,18 @@ namespace OctoConfig.Core.Secrets
 		private bool hasSecret(string variable)
 		{
 			var begin = variable.IndexOf("#{");
-			var end = variable.IndexOf('}');
-			return begin != -1 && end != -1 && begin < end;
+			if(begin == -1)
+			{
+				return false;
+			}
+			var end = variable.IndexOf('}', begin);
+			return end != -1;
 		}
 
 		private string getNextSecret(string text)
 		{
 			var begin = text.IndexOf("#{");
-			var end = text.IndexOf('}');
+			var end = text.IndexOf('}', begin);
 			return text.Substring(begin, end - (begin - 1)).Trim('#', '{', '}');
 		}
 
