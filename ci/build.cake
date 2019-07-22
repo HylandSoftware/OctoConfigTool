@@ -4,7 +4,7 @@
 
 var target = Argument("target", "build");
 var configuration = Argument("configuration", "Release");
-var version = Argument<string>("version", "0.0.1-ci");
+var version = Argument<string>("tag", "0.0.1-ci");
 
 System.IO.Directory.SetCurrentDirectory(MakeAbsolute(Directory("../")).FullPath);
 SetMiniCoverToolsProject("./ci/minicover.csproj");

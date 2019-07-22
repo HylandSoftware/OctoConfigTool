@@ -19,4 +19,4 @@ fi
 
 echo "Building task ${CAKE_TASK}"
 
-"${SCRIPT_ROOT}/../build.sh" -t "${CAKE_TASK}" "${CAKE_ARGS}" --version="${IMAGE_TAG}"
+"${SCRIPT_ROOT}/../build.sh" -t "${CAKE_TASK}" "${CAKE_ARGS}" --tag="${IMAGE_TAG}"
