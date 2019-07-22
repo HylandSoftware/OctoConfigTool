@@ -12,7 +12,7 @@
 	<PackageId>OctoConfigTool</PackageId>
 	<Authors>Alex Fuerst</Authors>
 	<Description>Tool to upload json configuration to Octopus Deploy</Description>
-	<PackageProjectUrl>https://bitbucket.hylandqa.net/projects/SB/repos/octopuslibraryupdater</PackageProjectUrl>
+	<PackageProjectUrl>https://github.com/HylandSoftware/OctoConfigTool</PackageProjectUrl>
 	<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
 

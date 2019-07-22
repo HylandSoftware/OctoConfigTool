@@ -9,7 +9,7 @@
 		<PackageId>OctoConfig.Core</PackageId>
 		<Authors>Alex Fuerst</Authors>
 		<Description>Cake Build addin for the OctoConfigTool</Description>
-		<PackageProjectUrl>https://bitbucket.hylandqa.net/projects/SB/repos/octopuslibraryupdater</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/HylandSoftware/OctoConfigTool</PackageProjectUrl>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 	</PropertyGroup>
 
