@@ -92,7 +92,7 @@ Task("publish")
 	.Does(() =>
 	{
 		PublishPackages(nugetPublishUrl, nugetApiKey);
-		PublishDocker(version);
+		// PublishDocker(version);
 	});
 
 Task("ci-test")
