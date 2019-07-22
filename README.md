@@ -2,6 +2,10 @@
 
 [![Build Status](https://travis-ci.org/HylandSoftware/OctoConfigTool.svg?branch=master)](https://travis-ci.org/HylandSoftware/OctoConfigTool) [![Coverage Status](https://coveralls.io/repos/github/HylandSoftware/OctoConfigTool/badge.svg?branch=master)](https://coveralls.io/github/HylandSoftware/OctoConfigTool?branch=master)
 
+DotNet Tool: [![OctoConfigTool](https://buildstats.info/nuget/OctoConfigTool)](https://www.nuget.org/packages/OctoConfigTool/)
+
+Cake Addin: [![OctoConfig.Core](https://buildstats.info/nuget/OctoConfigTool)](https://www.nuget.org/packages/OctoConfig.Core/)
+
 A tool designed to convert json configuration files into a format usable by Octopus Deploy and upload them to Octopus.
 It supports several secrets providers and pulls secrets based on values in the flat configuration files.
 Works with tenanted and non-tenanted deployment schemes.
