@@ -72,6 +72,7 @@ namespace OctoConfig.Tests
 		[InlineData("[ #{var1}, #{var2} ]", "[ AB, AB ]", "AB")]
 		[InlineData("[ { #{var1}, #{var2} } ]", "[ { AB, AB } ]", "AB")]
 		[InlineData("[ { #{var1}, #{var2} }, { #{var1}, #{var2} } ]", "[ { AB, AB }, { AB, AB } ]", "AB")]
+		[InlineData("[ { BAD }, { #{var1}, #{var2} }, { #{var1}, #{var2} } ]", "[ { BAD }, { AB, AB }, { AB, AB } ]", "AB")]
 		public async Task MultipleSecretsAreReplaced(string variableText, string expectedText, string replace)
 		{
 			var mockFact = new Mock<ISecretProviderFactory>();
