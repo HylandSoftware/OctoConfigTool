@@ -104,7 +104,7 @@ Task("ci-publish")
 	.IsDependentOn("clean")
 	.IsDependentOn("build")
 	.IsDependentOn("test")
-	.IsDependentOn("package");
+	.IsDependentOn("package")
 	.IsDependentOn("publish");
 
 Task("Default")
