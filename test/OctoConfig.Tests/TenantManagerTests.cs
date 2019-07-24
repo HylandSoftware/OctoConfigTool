@@ -11,17 +11,17 @@ using System.Threading.Tasks;
 using Octopus.Client.Repositories.Async;
 using Octopus.Client.Model;
 using System.Linq;
+using OctoConfig.Tests.TestFixture;
 
 namespace OctoConfig.Tests
 {
 	public class TenantManagerTests
 	{
 		[Theory]
-		[InlineData("testProj")]
-		[InlineData("fakeProj")]
-		public void MissingProjectThrows(string projectName)
+		[InlineAppAutoData("testProj")]
+		[InlineAppAutoData("fakeProj")]
+		public void MissingProjectThrows(string projectName, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
 			octoMoq.Setup(o => o.Projects).Returns(Mock.Of<IProjectRepository>());
 			var args = new TenantTargetArgs() { ProjectName = projectName };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -31,12 +31,10 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen")]
-		[InlineData("fakeTen")]
-		public void MissingTenantThrows(string tenantName)
+		[InlineAppAutoData("testTen")]
+		[InlineAppAutoData("fakeTen")]
+		public void MissingTenantThrows(string tenantName, Mock<IOctopusAsyncRepository> octoMoq, Mock<IProjectRepository> projMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			var projMoq = new Mock<IProjectRepository>();
 			projMoq.Setup(p => p.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))
 				.Returns(Task.FromResult(new ProjectResource()));
 			octoMoq.Setup(o => o.Projects).Returns(projMoq.Object);
@@ -49,13 +47,12 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testEnv")]
-		[InlineData("fakeEnv")]
-		public void MissingEnvironmentThrows(string enviroName)
+		[InlineAppAutoData("testEnv")]
+		[InlineAppAutoData("fakeEnv")]
+		public void MissingEnvironmentThrows(string enviroName, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj("h").Object);
-			var tenMoq = _mockedTen(null, "h", new TenantVariableResource.Project(""));
+			octoMoq.Setup(o => o.Projects).Returns(mockProj("h").Object);
+			var tenMoq = mockedTen(null, "h", new TenantVariableResource.Project(""));
 			octoMoq.Setup(o => o.Tenants).Returns(tenMoq.Object);
 			octoMoq.Setup(o => o.Environments).Returns(Mock.Of<IEnvironmentRepository>());
 
@@ -67,12 +64,11 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj")]
-		public void UnlinkedProjectThrows(string tenantName, string projectName)
+		[InlineAppAutoData("testTen", "testProj")]
+		public void UnlinkedProjectThrows(string tenantName, string projectName, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
-			var tenMoq = _mockedTen(tenantName, "", null);
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
+			var tenMoq = mockedTen(tenantName, "", null);
 			octoMoq.Setup(o => o.Tenants).Returns(tenMoq.Object);
 			octoMoq.Setup(o => o.Environments).Returns(Mock.Of<IEnvironmentRepository>());
 
@@ -84,14 +80,13 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj", "Qa")]
-		public void UnlinkedEnvironmentThrows(string tenantName, string projectName, string environment)
+		[InlineAppAutoData("testTen", "testProj", "Qa")]
+		public void UnlinkedEnvironmentThrows(string tenantName, string projectName, string environment, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
-			var tenMoq = _mockedTen(tenantName, projectName, new TenantVariableResource.Project(""));
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
+			var tenMoq = mockedTen(tenantName, projectName, new TenantVariableResource.Project(""));
 			octoMoq.Setup(o => o.Tenants).Returns(tenMoq.Object);
-			octoMoq.Setup(o => o.Environments).Returns(_mockEnv(environment).Object);
+			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -101,15 +96,14 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj", "Qa")]
-		public void UnexpectedTenantConfigThrows(string tenantName, string projectName, string environment)
+		[InlineAppAutoData("testTen", "testProj", "Qa")]
+		public void UnexpectedTenantConfigThrows(string tenantName, string projectName, string environment, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
 			var tenProj = new TenantVariableResource.Project("");
 			tenProj.Variables.Add(environment, new Dictionary<string, PropertyValueResource>());
-			octoMoq.Setup(o => o.Tenants).Returns(_mockedTen(tenantName, projectName, tenProj).Object);
-			octoMoq.Setup(o => o.Environments).Returns(_mockEnv(environment).Object);
+			octoMoq.Setup(o => o.Tenants).Returns(mockedTen(tenantName, projectName, tenProj).Object);
+			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -119,16 +113,16 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj", "Qa", "aA", "g")]
-		[InlineData("testTen", "testProj", "Qa", "varName", "varValue")]
-		public async Task TenantvariableShouldBeCreatedToMatchProject(string tenantName, string projectName, string environment, string variableName, string variableValue)
+		[InlineAppAutoData("testTen", "testProj", "Qa", "aA", "g")]
+		[InlineAppAutoData("testTen", "testProj", "Qa", "varName", "varValue")]
+		public async Task TenantvariableShouldBeCreatedToMatchProject(string tenantName, string projectName, string environment, string variableName,
+			string variableValue, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
 			var tenProj = new TenantVariableResource.Project("");
 			tenProj.Variables.Add(environment, new Dictionary<string, PropertyValueResource>());
 			tenProj.Templates.Add(new ActionTemplateParameterResource() { Name = variableName, Id = variableName });
-			var mockTen = _mockedTen(tenantName, projectName, tenProj);
+			var mockTen = mockedTen(tenantName, projectName, tenProj);
 			mockTen.Setup(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()))
 				.Returns<TenantResource, TenantVariableResource>((tr, tvr) =>
 				{
@@ -143,7 +137,7 @@ namespace OctoConfig.Tests
 				});
 
 			octoMoq.Setup(o => o.Tenants).Returns(mockTen.Object);
-			octoMoq.Setup(o => o.Environments).Returns(_mockEnv(environment).Object);
+			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -152,16 +146,16 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj", "Qa", "aA", "g")]
-		[InlineData("testTen", "testProj", "Qa", "varName", "varValue")]
-		public async Task SensitiveSecretShouldMakeTenantVariableSecret(string tenantName, string projectName, string environment, string variableName, string variableValue)
+		[InlineAppAutoData("testTen", "testProj", "Qa", "aA", "g")]
+		[InlineAppAutoData("testTen", "testProj", "Qa", "varName", "varValue")]
+		public async Task SensitiveSecretShouldMakeTenantVariableSecret(string tenantName, string projectName, string environment, string variableName,
+			string variableValue, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
 			var tenProj = new TenantVariableResource.Project("");
 			tenProj.Variables.Add(environment, new Dictionary<string, PropertyValueResource>());
 			tenProj.Templates.Add(new ActionTemplateParameterResource() { Name = variableName, Id = variableName });
-			var mockTen = _mockedTen(tenantName, projectName, tenProj);
+			var mockTen = mockedTen(tenantName, projectName, tenProj);
 			mockTen.Setup(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()))
 				.Returns<TenantResource, TenantVariableResource>((tr, tvr) =>
 				{
@@ -177,7 +171,7 @@ namespace OctoConfig.Tests
 				});
 
 			octoMoq.Setup(o => o.Tenants).Returns(mockTen.Object);
-			octoMoq.Setup(o => o.Environments).Returns(_mockEnv(environment).Object);
+			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -186,12 +180,12 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj", "Qa", "aA", "g")]
-		[InlineData("testTen", "testProj", "Qa", "varName", "varValue")]
-		public async Task SensitiveTemplateShouldMakeTenantVariableSecret(string tenantName, string projectName, string environment, string variableName, string variableValue)
+		[InlineAppAutoData("testTen", "testProj", "Qa", "aA", "g")]
+		[InlineAppAutoData("testTen", "testProj", "Qa", "varName", "varValue")]
+		public async Task SensitiveTemplateShouldMakeTenantVariableSecret(string tenantName, string projectName, string environment, string variableName,
+			string variableValue, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
 			var tenProj = new TenantVariableResource.Project("");
 			tenProj.Variables.Add(environment, new Dictionary<string, PropertyValueResource>());
 			tenProj.Templates.Add(new ActionTemplateParameterResource()
@@ -199,7 +193,7 @@ namespace OctoConfig.Tests
 					Name = variableName, Id = variableName, DefaultValue = "",
 					DisplaySettings = new Dictionary<string, string>() { { "Octopus.ControlType", "Sensitive" } }
 				});
-			var mockTen = _mockedTen(tenantName, projectName, tenProj);
+			var mockTen = mockedTen(tenantName, projectName, tenProj);
 			mockTen.Setup(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()))
 				.Returns<TenantResource, TenantVariableResource>((tr, tvr) =>
 				{
@@ -212,7 +206,7 @@ namespace OctoConfig.Tests
 				});
 
 			octoMoq.Setup(o => o.Tenants).Returns(mockTen.Object);
-			octoMoq.Setup(o => o.Environments).Returns(_mockEnv(environment).Object);
+			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -221,12 +215,11 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj")]
-		public async Task ApplyFalseDoesntPersistChangesToOctopus(string tenantName, string projectName)
+		[InlineAppAutoData("testTen", "testProj")]
+		public async Task ApplyFalseDoesntPersistChangesToOctopus(string tenantName, string projectName, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
-			var mockTen = _mockedTen(tenantName, projectName, new TenantVariableResource.Project(""));
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
+			var mockTen = mockedTen(tenantName, projectName, new TenantVariableResource.Project(""));
 			mockTen.Setup(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()))
 				.Verifiable();
 			octoMoq.Setup(o => o.Tenants).Returns(mockTen.Object);
@@ -239,12 +232,12 @@ namespace OctoConfig.Tests
 		}
 
 		[Theory]
-		[InlineData("testTen", "testProj", "Qa", "aA", "g")]
-		[InlineData("testTen", "testProj", "Qa", "varName", "varValue")]
-		public void TenantWithExistingVariableShouldNotThrow(string tenantName, string projectName, string environment, string variableName, string variableValue)
+		[InlineAppAutoData("testTen", "testProj", "Qa", "aA", "g")]
+		[InlineAppAutoData("testTen", "testProj", "Qa", "varName", "varValue")]
+		public void TenantWithExistingVariableShouldNotThrow(string tenantName, string projectName, string environment, string variableName,
+			string variableValue, Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			octoMoq.Setup(o => o.Projects).Returns(_mockProj(projectName).Object);
+			octoMoq.Setup(o => o.Projects).Returns(mockProj(projectName).Object);
 			var tenProj = new TenantVariableResource.Project("");
 			tenProj.Variables.Add(environment, new Dictionary<string, PropertyValueResource>() { { variableName, new PropertyValueResource(variableValue) } });
 			tenProj.Templates.Add(new ActionTemplateParameterResource()
@@ -254,12 +247,12 @@ namespace OctoConfig.Tests
 				DefaultValue = "",
 				DisplaySettings = new Dictionary<string, string>() { { "Octopus.ControlType", "Sensitive" } }
 			});
-			var mockTen = _mockedTen(tenantName, projectName, tenProj);
+			var mockTen = mockedTen(tenantName, projectName, tenProj);
 			mockTen.Setup(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()))
 				.Returns<TenantResource, TenantVariableResource>((_, tvr) => Task.FromResult(tvr));
 
 			octoMoq.Setup(o => o.Tenants).Returns(mockTen.Object);
-			octoMoq.Setup(o => o.Environments).Returns(_mockEnv(environment).Object);
+			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
 			var sut = new TenantManager(args, octoMoq.Object);
@@ -268,7 +261,7 @@ namespace OctoConfig.Tests
 			act.Should().NotThrow();
 		}
 
-		private Mock<ITenantRepository> _mockedTen(string tenantName, string projectName, TenantVariableResource.Project obj)
+		private Mock<ITenantRepository> mockedTen(string tenantName, string projectName, TenantVariableResource.Project obj)
 		{
 			var tenMoq = new Mock<ITenantRepository>();
 			tenMoq.Setup(p => p.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))
@@ -283,7 +276,7 @@ namespace OctoConfig.Tests
 			return tenMoq;
 		}
 
-		private Mock<IProjectRepository> _mockProj(string projectName)
+		private Mock<IProjectRepository> mockProj(string projectName)
 		{
 			var projMoq = new Mock<IProjectRepository>();
 			projMoq.Setup(p => p.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))
@@ -291,7 +284,7 @@ namespace OctoConfig.Tests
 			return projMoq;
 		}
 
-		private Mock<IEnvironmentRepository> _mockEnv(string enviroName)
+		private Mock<IEnvironmentRepository> mockEnv(string enviroName)
 		{
 			var envMoq = new Mock<IEnvironmentRepository>();
 			envMoq.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))

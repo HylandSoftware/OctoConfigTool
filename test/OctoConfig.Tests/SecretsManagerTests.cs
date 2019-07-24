@@ -2,113 +2,94 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Moq;
 using OctoConfig.Core;
 using OctoConfig.Core.Secrets;
+using OctoConfig.Tests.TestFixture;
 using Xunit;
 
 namespace OctoConfig.Tests
 {
 	public class SecretsManagerTests
 	{
-		[Fact]
-		public async Task NoSecretsDoesNotUseFactory()
+		[Theory, AppAutoData]
+		public async Task NoSecretsDoesNotUseFactory([Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen]  Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Verifiable();
 
-			var mock = new Mock<ISecretProviderFactory>();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Verifiable();
-			var s = new SecretsMananger(mock.Object);
-			await s.ReplaceSecrets(new List<SecretVariable>() { new SecretVariable("hello", "world") }).ConfigureAwait(false);
+			await sut.ReplaceSecrets(new List<SecretVariable>() { new SecretVariable("hello", "world") }).ConfigureAwait(false);
 			mockProv.Verify(v => v.GetSecret(It.IsAny<string>()), Times.Never);
 		}
 
-		[Fact]
-		public async Task SecretDoesUseFactory()
+		[Theory, AppAutoData]
+		public async Task SecretDoesUseFactory([Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen]  Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Verifiable();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Returns(Task.FromResult(String.Empty));
 
-			var s = new SecretsMananger(mockFact.Object);
-			await s.ReplaceSecrets(new List<SecretVariable>() { new SecretVariable("hello", "#{world}") }).ConfigureAwait(false);
+			await sut.ReplaceSecrets(new List<SecretVariable>() { new SecretVariable("hello", "#{world}") }).ConfigureAwait(false);
 			mockProv.Verify(v => v.GetSecret(It.IsAny<string>()), Times.Once);
 		}
 
-		[Fact]
-		public async Task ThreeSecretsUsesFactoryThreeTimes()
+		[Theory, AppAutoData]
+		public async Task ThreeSecretsUsesFactoryThreeTimes([Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen]  Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Verifiable();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Returns(Task.FromResult(String.Empty));
-			var s = new SecretsMananger(mockFact.Object);
-			await s.ReplaceSecrets(new List<SecretVariable>() { new SecretVariable("hello", "#{world} #{double} #{trouble}") }).ConfigureAwait(false);
+			await sut.ReplaceSecrets(new List<SecretVariable>() { new SecretVariable("hello", "#{world} #{double} #{trouble}") }).ConfigureAwait(false);
 			mockProv.Verify(v => v.GetSecret(It.IsAny<string>()), Times.Exactly(3));
 		}
 
-		[Fact]
-		public async Task SecretsAreReplaced()
+		[Theory, AppAutoData]
+		public async Task SecretsAreReplaced([Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen] Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Returns(Task.FromResult("SECRET"));
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
-			var s = new SecretsMananger(mockFact.Object);
 			var secrets = new List<SecretVariable>() { new SecretVariable("hello", "#{world}") };
-			await s.ReplaceSecrets(secrets).ConfigureAwait(false);
+			await sut.ReplaceSecrets(secrets).ConfigureAwait(false);
 			secrets.Single().Value.Should().Be("SECRET");
 		}
 
 		[Theory]
-		[InlineData("#{var1} #{var2}", "AB AB", "AB")]
-		[InlineData("[ #{var1}, #{var2} ]", "[ AB, AB ]", "AB")]
-		[InlineData("[ { #{var1}, #{var2} } ]", "[ { AB, AB } ]", "AB")]
-		[InlineData("[ { #{var1}, #{var2} }, { #{var1}, #{var2} } ]", "[ { AB, AB }, { AB, AB } ]", "AB")]
-		[InlineData("[ { BAD }, { #{var1}, #{var2} }, { #{var1}, #{var2} } ]", "[ { BAD }, { AB, AB }, { AB, AB } ]", "AB")]
-		public async Task MultipleSecretsAreReplaced(string variableText, string expectedText, string replace)
+		[InlineAppAutoData("#{var1} #{var2}", "AB AB", "AB")]
+		[InlineAppAutoData("[ #{var1}, #{var2} ]", "[ AB, AB ]", "AB")]
+		[InlineAppAutoData("[ { #{var1}, #{var2} } ]", "[ { AB, AB } ]", "AB")]
+		[InlineAppAutoData("[ { #{var1}, #{var2} }, { #{var1}, #{var2} } ]", "[ { AB, AB }, { AB, AB } ]", "AB")]
+		[InlineAppAutoData("[ { BAD }, { #{var1}, #{var2} }, { #{var1}, #{var2} } ]", "[ { BAD }, { AB, AB }, { AB, AB } ]", "AB")]
+		public async Task MultipleSecretsAreReplaced(string variableText, string expectedText, string replace,
+			[Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen] Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Verifiable();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Returns(Task.FromResult(replace));
-			var s = new SecretsMananger(mockFact.Object);
 			var secrets = new List<SecretVariable>() { new SecretVariable("hello", variableText) };
-			await s.ReplaceSecrets(secrets).ConfigureAwait(false);
+			await sut.ReplaceSecrets(secrets).ConfigureAwait(false);
 			secrets.Single().Value.Should().Be(expectedText);
 		}
 
-		[Fact]
-		public async Task ReplacedVariableIsMarkedSecret()
+		[Theory, AppAutoData]
+		public async Task ReplacedVariableIsMarkedSecret([Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen] Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Returns(Task.FromResult("SECRET"));
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
-			var s = new SecretsMananger(mockFact.Object);
 			var secrets = new List<SecretVariable>() { new SecretVariable("hello", "#{world}") };
-			await s.ReplaceSecrets(secrets).ConfigureAwait(false);
+			await sut.ReplaceSecrets(secrets).ConfigureAwait(false);
 			secrets.Single().IsSecret.Should().BeTrue();
 		}
 
-		[Fact]
-		public async Task NonReplacedVariableIsNotMarkedSecret()
+		[Theory, AppAutoData]
+		public async Task NonReplacedVariableIsNotMarkedSecret([Frozen] Mock<ISecretProviderFactory> mockFact, [Frozen] Mock<ISecretProvider> mockProv, SecretsMananger sut)
 		{
-			var mockFact = new Mock<ISecretProviderFactory>();
-			var mockProv = new Mock<ISecretProvider>();
 			mockProv.Setup(v => v.GetSecret(It.IsAny<string>())).Returns(Task.FromResult("SECRET"));
 			mockFact.Setup(f => f.Create(It.IsAny<string>())).Returns(mockProv.Object);
-			var s = new SecretsMananger(mockFact.Object);
 			var secrets = new List<SecretVariable>() { new SecretVariable("hello", "world") };
-			await s.ReplaceSecrets(secrets).ConfigureAwait(false);
+			await sut.ReplaceSecrets(secrets).ConfigureAwait(false);
 			secrets.Single().IsSecret.Should().BeFalse();
 		}
 	}

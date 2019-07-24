@@ -11,17 +11,18 @@ using System.Threading.Tasks;
 using Octopus.Client.Repositories.Async;
 using Octopus.Client.Model;
 using System.Linq;
+using OctoConfig.Tests.TestFixture;
+using AutoFixture.Xunit2;
 
 namespace OctoConfig.Tests
 {
 	public class ProjectManagerTests
 	{
 		[Theory]
-		[InlineData("testProj")]
-		[InlineData("fakeProj")]
-		public void MissingProjectThrows(string projectName)
+		[InlineAppAutoData("testProj")]
+		[InlineAppAutoData("fakeProj")]
+		public void MissingProjectThrows(string projectName, [Frozen] Mock<IOctopusAsyncRepository> octoMoq)
 		{
-			var octoMoq = new Mock<IOctopusAsyncRepository>();
 			octoMoq.Setup(o => o.Projects).Returns(Mock.Of<IProjectRepository>());
 			var args = new TenantTargetArgs() { ProjectName = projectName };
 			var sut = new ProjectManager(args, octoMoq.Object);
@@ -37,7 +38,7 @@ namespace OctoConfig.Tests
 		{
 			var project = new ProjectResource() { Id = projectName, Name = projectName };
 			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			var mockProj = _mockProj(projectName);
+			var mockProj = this.mockProj(projectName);
 			mockProj.Setup(t => t.Modify(It.IsAny<ProjectResource>()))
 				.Returns<ProjectResource>(prj =>
 				{
@@ -64,7 +65,7 @@ namespace OctoConfig.Tests
 		{
 			var project = new ProjectResource() { Id = projectName, Name = projectName };
 			var octoMoq = new Mock<IOctopusAsyncRepository>();
-			var mockProj = _mockProj(projectName);
+			var mockProj = this.mockProj(projectName);
 			mockProj.Setup(t => t.Modify(It.IsAny<ProjectResource>()))
 				.Returns<ProjectResource>(prj =>
 				{
@@ -84,7 +85,7 @@ namespace OctoConfig.Tests
 			await sut.CreateProjectVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) { IsSecret = true } }).ConfigureAwait(false);
 		}
 
-		private Mock<IProjectRepository> _mockProj(string projectName)
+		private Mock<IProjectRepository> mockProj(string projectName)
 		{
 			var projMoq = new Mock<IProjectRepository>();
 			projMoq.Setup(p => p.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>()))

@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Moq;
 using OctoConfig.Core.Octopus;
+using OctoConfig.Tests.TestFixture;
 using Octopus.Client;
 using Octopus.Client.Model;
 using Octopus.Client.Repositories.Async;
 using Xunit;
-using Xunit.Extensions;
 
 namespace OctoConfig.Tests
 {
@@ -57,23 +58,19 @@ namespace OctoConfig.Tests
 		public class ValidateEnvironmentTests
 		{
 			[Theory]
-			[InlineData("QA")]
-			public async Task FoundEnvironmentShouldNotThrow(string environment)
+			[InlineAppAutoData("QA")]
+			public async Task FoundEnvironmentShouldNotThrow(string environment, [Frozen] Mock<IEnvironmentRepository> environmentMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var environmentMock = new Mock<IEnvironmentRepository>();
 				environmentMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult(new EnvironmentResource()));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.Environments).Returns(environmentMock.Object);
 				await mock.Object.ValidateEnvironment(environment).ConfigureAwait(false);
 			}
 
 			[Theory]
-			[InlineData("QA")]
-			public void MissingEnvironmentShouldNotThrow(string environment)
+			[InlineAppAutoData("QA")]
+			public void MissingEnvironmentShouldNotThrow(string environment, [Frozen] Mock<IEnvironmentRepository> environmentMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var environmentMock = new Mock<IEnvironmentRepository>();
 				environmentMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult<EnvironmentResource>(null));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.Environments).Returns(environmentMock.Object);
 				Func<Task> test = () => mock.Object.ValidateEnvironment(environment);
 				test.Should().Throw<ArgumentException>().WithMessage($"Unable to find an environment with the name '{environment}'");
@@ -83,23 +80,19 @@ namespace OctoConfig.Tests
 		public class ValidateLibraryTests
 		{
 			[Theory]
-			[InlineData("Shared")]
-			public async Task FoundLibraryShouldNotThrow(string library)
+			[InlineAppAutoData("Shared")]
+			public async Task FoundLibraryShouldNotThrow(string library, [Frozen] Mock<ILibraryVariableSetRepository> libraryMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var libraryMock = new Mock<ILibraryVariableSetRepository>();
 				libraryMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult(new LibraryVariableSetResource()));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.LibraryVariableSets).Returns(libraryMock.Object);
 				await mock.Object.ValidateLibrary(library).ConfigureAwait(false);
 			}
 
 			[Theory]
-			[InlineData("QA")]
-			public void MissingLibraryShouldNotThrow(string library)
+			[InlineAppAutoData("QA")]
+			public void MissingLibraryShouldNotThrow(string library, [Frozen] Mock<ILibraryVariableSetRepository> libraryMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var libraryMock = new Mock<ILibraryVariableSetRepository>();
 				libraryMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult<LibraryVariableSetResource>(null));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.LibraryVariableSets).Returns(libraryMock.Object);
 				Func<Task> test = () => mock.Object.ValidateLibrary(library);
 				test.Should().Throw<ArgumentException>().WithMessage($"Unable to find a library with the name '{library}'");
@@ -109,23 +102,19 @@ namespace OctoConfig.Tests
 		public class ValidateProjectTests
 		{
 			[Theory]
-			[InlineData("QA")]
-			public async Task FoundProjectShouldNotThrow(string project)
+			[InlineAppAutoData("QA")]
+			public async Task FoundProjectShouldNotThrow(string project, [Frozen] Mock<IProjectRepository> projectMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var projectMock = new Mock<IProjectRepository>();
 				projectMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult(new ProjectResource()));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.Projects).Returns(projectMock.Object);
 				await mock.Object.ValidateProject(project).ConfigureAwait(false);
 			}
 
 			[Theory]
-			[InlineData("QA")]
-			public void MissingProjectShouldNotThrow(string project)
+			[InlineAppAutoData("QA")]
+			public void MissingProjectShouldNotThrow(string project, [Frozen] Mock<IProjectRepository> projectMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var projectMock = new Mock<IProjectRepository>();
 				projectMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult<ProjectResource>(null));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.Projects).Returns(projectMock.Object);
 				Func<Task> test = () => mock.Object.ValidateProject(project);
 				test.Should().Throw<ArgumentException>().WithMessage($"Unable to find a project with the name '{project}'");
@@ -135,23 +124,19 @@ namespace OctoConfig.Tests
 		public class ValidateTenantTests
 		{
 			[Theory]
-			[InlineData("QA")]
-			public async Task FoundRoleShouldNotThrow(string tenant)
+			[InlineAppAutoData("QA")]
+			public async Task FoundRoleShouldNotThrow(string tenant, [Frozen] Mock<ITenantRepository> tenantMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var tenantMock = new Mock<ITenantRepository>();
 				tenantMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult(new TenantResource()));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.Tenants).Returns(tenantMock.Object);
 				await mock.Object.ValidateTenant(tenant).ConfigureAwait(false);
 			}
 
 			[Theory]
-			[InlineData("QA")]
-			public void MissingRoleShouldNotThrow(string tenant)
+			[InlineAppAutoData("QA")]
+			public void MissingRoleShouldNotThrow(string tenant, [Frozen] Mock<ITenantRepository> tenantMock, [Frozen] Mock<IOctopusAsyncRepository> mock)
 			{
-				var tenantMock = new Mock<ITenantRepository>();
 				tenantMock.Setup(e => e.FindByName(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>())).Returns(Task.FromResult<TenantResource>(null));
-				var mock = new Mock<IOctopusAsyncRepository>();
 				mock.Setup(or => or.Tenants).Returns(tenantMock.Object);
 				Func<Task> test = () => mock.Object.ValidateTenant(tenant);
 				test.Should().Throw<ArgumentException>().WithMessage($"Unable to find a tenant with the name '{tenant}'");

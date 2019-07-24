@@ -1,65 +1,63 @@
 ﻿using System;
+using AutoFixture;
+using AutoFixture.Idioms;
+using AutoFixture.Xunit2;
 using FluentAssertions;
 using Moq;
 using OctoConfig.Core.Secrets;
+using OctoConfig.Tests.TestFixture;
 using Xunit;
 
 namespace OctoConfig.Tests
 {
-	public class SecretsProviderFactoryTests
+	public static class SecretsProviderFactoryTests
 	{
-		[Theory, InlineData("")]
-		public void CreatingSecretProviderUsesServiceProvider(string i)
+		public class Constructor
 		{
-			var mock = new Mock<IServiceProvider>();
-			mock.Setup(s => s.GetService(It.IsAny<Type>())).Verifiable();
-
-			var sut = new SecretProviderFactory(mock.Object);
-			sut.Create(i);
-			mock.Verify(s => s.GetService(It.IsAny<Type>()), Times.Once);
+			[Theory, AppAutoData]
+			public void ContsructorGuardClauses(IFixture fixture)
+			{
+				var assertion = new GuardClauseAssertion(fixture);
+				assertion.Verify(typeof(SecretProviderFactory).GetConstructors());
+			}
 		}
 
-		[Theory, InlineData("tihnspith")]
-		public void UnsupportedProviderCodeThrows(string i)
+		public class GetService
 		{
-			var mock = Mock.Of<IServiceProvider>();
+			[Theory, InlineAppAutoData("")]
+			public void CreatingSecretProviderUsesServiceProvider(string i, [Frozen] Mock<IServiceProvider> mock, SecretProviderFactory sut)
+			{
+				sut.Create(i);
+				mock.Verify(s => s.GetService(It.IsAny<Type>()), Times.Once);
+			}
 
-			var sut = new SecretProviderFactory(mock);
-			Action act = () => sut.Create(i);
-			act.Should().Throw<NotSupportedException>();
-		}
+			[Theory, InlineAppAutoData("tihnspith")]
+			public void UnsupportedProviderCodeThrows(string i, SecretProviderFactory sut)
+			{
+				Action act = () => sut.Create(i);
+				act.Should().Throw<NotSupportedException>();
+			}
 
-		[Theory, InlineData("")]
-		public void NoPrefixCreatesV1VaultProvider(string i)
-		{
-			var mock = new Mock<IServiceProvider>();
-			mock.Setup(s => s.GetService(It.Is<Type>(t => t == typeof(VaultProvider)))).Verifiable();
+			[Theory, InlineAppAutoData("")]
+			public void NoPrefixCreatesV1VaultProvider(string i, [Frozen] Mock<IServiceProvider> mock, SecretProviderFactory sut)
+			{
+				sut.Create(i);
+				mock.Verify(s => s.GetService(It.Is<Type>(t => t == typeof(VaultProvider))), Times.Once);
+			}
 
-			var sut = new SecretProviderFactory(mock.Object);
-			sut.Create(i);
-			mock.Verify(s => s.GetService(It.Is<Type>(t => t == typeof(VaultProvider))), Times.Once);
-		}
+			[Theory, InlineAppAutoData("VaultKVV2")]
+			public void VaultKVV2CreatesV2VaultProvider(string i, [Frozen] Mock<IServiceProvider> mock, SecretProviderFactory sut)
+			{
+				sut.Create(i);
+				mock.Verify(s => s.GetService(It.Is<Type>(t => t == typeof(VaultKVV2Provider))), Times.Once);
+			}
 
-		[Theory, InlineData("VaultKVV2")]
-		public void VaultKVV2CreatesV2VaultProvider(string i)
-		{
-			var mock = new Mock<IServiceProvider>();
-			mock.Setup(s => s.GetService(It.Is<Type>(t => t == typeof(VaultKVV2Provider)))).Verifiable();
-
-			var sut = new SecretProviderFactory(mock.Object);
-			sut.Create(i);
-			mock.Verify(s => s.GetService(It.Is<Type>(t => t == typeof(VaultKVV2Provider))), Times.Once);
-		}
-
-		[Theory, InlineData("VaultKVV1")]
-		public void VaultKVV1CreatesV1VaultProvider(string i)
-		{
-			var mock = new Mock<IServiceProvider>();
-			mock.Setup(s => s.GetService(It.Is<Type>(t => t == typeof(VaultProvider)))).Verifiable();
-
-			var sut = new SecretProviderFactory(mock.Object);
-			sut.Create(i);
-			mock.Verify(s => s.GetService(It.Is<Type>(t => t == typeof(VaultProvider))), Times.Once);
+			[Theory, InlineAppAutoData("VaultKVV1")]
+			public void VaultKVV1CreatesV1VaultProvider(string i, [Frozen] Mock<IServiceProvider> mock, SecretProviderFactory sut)
+			{
+				sut.Create(i);
+				mock.Verify(s => s.GetService(It.Is<Type>(t => t == typeof(VaultProvider))), Times.Once);
+			}
 		}
 	}
 }
