@@ -8,9 +8,9 @@ namespace OctoConfig.Core.Commands
 	public class ClearVariableSetCommand
 	{
 		private readonly ClearVariableSetArgs _args;
-		private readonly LibraryManager _libraryManager;
+		private readonly ILibraryManager _libraryManager;
 
-		public ClearVariableSetCommand(ClearVariableSetArgs args, LibraryManager libraryManager)
+		public ClearVariableSetCommand(ClearVariableSetArgs args, ILibraryManager libraryManager)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_libraryManager = libraryManager ?? throw new ArgumentNullException(nameof(libraryManager));

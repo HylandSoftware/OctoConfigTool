@@ -13,10 +13,10 @@ namespace OctoConfig.Core.Commands
 	{
 		private readonly LibraryTargetArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
-		private readonly LibraryManager _libraryManager;
+		private readonly ILibraryManager _libraryManager;
 		private readonly VariableConverter _varConverter;
 
-		public UploadLibraryCommand(LibraryTargetArgs args, ISecretsMananger secretsMananger, LibraryManager libraryMananger, VariableConverter variableConverter)
+		public UploadLibraryCommand(LibraryTargetArgs args, ISecretsMananger secretsMananger, ILibraryManager libraryMananger, VariableConverter variableConverter)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));

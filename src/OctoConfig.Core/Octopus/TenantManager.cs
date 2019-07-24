@@ -8,7 +8,12 @@ using Octopus.Client.Model;
 
 namespace OctoConfig.Core.Octopus
 {
-	public class TenantManager
+	public interface ITenantManager
+	{
+		Task CreateTenantVariables(List<SecretVariable> vars, bool apply = true);
+	}
+
+	public class TenantManager : ITenantManager
 	{
 		private readonly TenantTargetArgs _args;
 		private readonly IOctopusAsyncRepository _octopusRepository;
@@ -68,26 +73,6 @@ namespace OctoConfig.Core.Octopus
 			{
 				await _octopusRepository.Tenants.ModifyVariables(tenant, tenantVars).ConfigureAwait(false);
 			}
-		}
-	}
-
-	public class TenantClearer
-	{
-		private readonly ClearTenantArgs _args;
-		private readonly IOctopusAsyncRepository _octopusRepository;
-
-		public TenantClearer(ClearTenantArgs args, IOctopusAsyncRepository octopusRepository)
-		{
-			_args = args ?? throw new ArgumentNullException(nameof(args));
-			_octopusRepository = octopusRepository ?? throw new ArgumentNullException(nameof(octopusRepository));
-		}
-
-		public async Task ClearTenantVariables()
-		{
-			var tenant = await _octopusRepository.ValidateTenant(_args.TenantName).ConfigureAwait(false);
-			var tenantVars = await _octopusRepository.Tenants.GetVariables(tenant).ConfigureAwait(false);
-			tenantVars.ProjectVariables.Clear();
-			await _octopusRepository.Tenants.ModifyVariables(tenant, tenantVars).ConfigureAwait(false);
 		}
 	}
 }

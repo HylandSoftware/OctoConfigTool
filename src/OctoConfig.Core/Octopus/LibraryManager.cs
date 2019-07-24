@@ -1,13 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Octopus.Client;
 using Octopus.Client.Model;
 
 namespace OctoConfig.Core.Octopus
 {
-	public class LibraryManager
+	public interface ILibraryManager
+	{
+		Task<int> ClearLibrarySet(string libraryName);
+		Task UpdateVars(List<SecretVariable> vars, string libraryName, IEnumerable<string> environments, IEnumerable<string> roles, bool apply);
+	}
+
+	public class LibraryManager : ILibraryManager
 	{
 		private readonly IOctopusAsyncRepository _octopusRepository;
 

@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.IO.Abstractions;
 using System.Linq;
 using System.Threading.Tasks;
 using OctoConfig.Core.Arguments;
@@ -14,22 +14,24 @@ namespace OctoConfig.Core.Commands
 		private readonly TenantTargetArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
 		private readonly VariableConverter _varConverter;
-		private readonly ProjectManager _projectManager;
-		private readonly TenantManager _tenantManager;
+		private readonly IProjectManager _projectManager;
+		private readonly ITenantManager _tenantManager;
+		private readonly IFileSystem _fileSystem;
 
-		public UploadTenantCommand(TenantTargetArgs args, ISecretsMananger secretsMananger, ProjectManager projectManager,
-			TenantManager tenantManager, VariableConverter variableConverter)
+		public UploadTenantCommand(TenantTargetArgs args, ISecretsMananger secretsMananger, IProjectManager projectManager,
+			ITenantManager tenantManager, VariableConverter variableConverter, IFileSystem fileSystem)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
 			_varConverter = variableConverter ?? throw new ArgumentNullException(nameof(variableConverter));
 			_projectManager = projectManager ?? throw new ArgumentNullException(nameof(projectManager));
 			_tenantManager = tenantManager ?? throw new ArgumentNullException(nameof(tenantManager));
+			_fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		}
 
 		public async Task Execute()
 		{
-			var vars = _varConverter.Convert(File.ReadAllText(_args.File));
+			var vars = _varConverter.Convert(_fileSystem.File.ReadAllText(_args.File));
 
 			await _secretsMananger.ReplaceSecrets(vars).ConfigureAwait(false);
 			await _projectManager.CreateProjectVariables(vars);

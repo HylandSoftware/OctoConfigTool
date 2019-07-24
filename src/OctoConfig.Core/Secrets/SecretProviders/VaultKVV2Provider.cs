@@ -2,41 +2,27 @@
 using System.Linq;
 using System.Threading.Tasks;
 using OctoConfig.Core.Arguments;
+using OctoConfig.Core.Secrets.Vault;
 using VaultSharp;
-using VaultSharp.V1.AuthMethods;
-using VaultSharp.V1.AuthMethods.AppRole;
 
 namespace OctoConfig.Core.Secrets
 {
 	public class VaultKVV2Provider : ISecretProvider
 	{
-		private readonly IVaultClient _vaultClient;
 		private readonly string _mountPoint = null;
+		private readonly IVaultClientFactory _vaultClientFactory;
 
-		public VaultKVV2Provider(FileArgsBase args)
+		public VaultKVV2Provider(FileArgsBase args, IVaultClientFactory vaultClientFactory)
 		{
+			if (args == null)
+			{
+				throw new ArgumentNullException(nameof(args));
+			}
 			if (!String.IsNullOrEmpty(args.MountPoint))
 			{
 				_mountPoint = args.MountPoint;
 			}
-			if (String.IsNullOrEmpty(args.VaultRoleId))
-			{
-				throw new ArgumentException("Vault Rold Id missing", nameof(args.VaultRoleId));
-			}
-			if (String.IsNullOrEmpty(args.VaultSecretId))
-			{
-				throw new ArgumentException("Vault Secret Id missing", nameof(args.VaultSecretId));
-			}
-			if (String.IsNullOrEmpty(args.VaultUri))
-			{
-				throw new ArgumentException("Vault VaultUri missing", nameof(args.VaultUri));
-			}
-			IAuthMethodInfo authMethod = new AppRoleAuthMethodInfo(args.VaultRoleId, secretId: args.VaultSecretId);
-			var vaultClientSettings = new VaultClientSettings(args.VaultUri, authMethod)
-			{
-				VaultServiceTimeout = TimeSpan.FromMinutes(5)
-			};
-			_vaultClient = new VaultClient(vaultClientSettings);
+			_vaultClientFactory = vaultClientFactory ?? throw new ArgumentNullException(nameof(vaultClientFactory));
 		}
 
 		/// <summary>
@@ -51,7 +37,7 @@ namespace OctoConfig.Core.Secrets
 		{
 			try
 			{
-				var kv2Secret = await _vaultClient.V1.Secrets.KeyValue.V2
+				var kv2Secret = await _vaultClientFactory.GetClient().V1.Secrets.KeyValue.V2
 								.ReadSecretAsync(path, mountPoint: _mountPoint ?? "secret")
 								.ConfigureAwait(false);
 				return kv2Secret.Data.Data["value"].ToString();
@@ -61,13 +47,13 @@ namespace OctoConfig.Core.Secrets
 				Console.Error.WriteLine($"Encountered a Vault API Exception on secret '{path}'");
 				Console.Error.WriteLine($"HTTP Error Code '{ex.HttpStatusCode}'");
 				Console.Error.Write("API Errors: ");
-				foreach (var item in ex.ApiErrors)
+				foreach (var item in ex?.ApiErrors ?? Enumerable.Empty<string>())
 				{
 					Console.Error.Write(item + " ");
 				}
 				Console.Error.WriteLine();
 				Console.Error.Write("API Warnings: ");
-				foreach (var item in ex.ApiWarnings ?? Enumerable.Empty<string>())
+				foreach (var item in ex?.ApiWarnings ?? Enumerable.Empty<string>())
 				{
 					Console.Error.Write(item + " ");
 				}

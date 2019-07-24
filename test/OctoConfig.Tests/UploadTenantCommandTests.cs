@@ -1,0 +1,53 @@
+﻿using System.Collections.Generic;
+using System.IO.Abstractions.TestingHelpers;
+using System.Threading.Tasks;
+using AutoFixture;
+using AutoFixture.Idioms;
+using AutoFixture.Xunit2;
+using Moq;
+using OctoConfig.Core;
+using OctoConfig.Core.Arguments;
+using OctoConfig.Core.Commands;
+using OctoConfig.Core.Octopus;
+using OctoConfig.Core.Secrets;
+using OctoConfig.Tests.TestFixture;
+using Xunit;
+
+namespace OctoConfig.Tests
+{
+	public static class UploadTenantCommandTests
+	{
+		public class Constructor
+		{
+			[Theory, AppAutoData]
+			public void ContsructorGuardClauses(IFixture fixture)
+			{
+				var assertion = new GuardClauseAssertion(fixture);
+				assertion.Verify(typeof(UploadTenantCommand).GetConstructors());
+			}
+		}
+
+		public class Execute
+		{
+			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
+			public async Task ApplyIsSetToFalse(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
+				[Frozen] MockFileSystem mockFileSystem, [Frozen] TenantTargetArgs args, UploadTenantCommand sut)
+			{
+				mockFileSystem.AddFile(args.File, new MockFileData(json));
+				await sut.Execute().ConfigureAwait(false);
+				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
+				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>()), Times.Once);
+			}
+
+			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
+			public async Task VariablesAreSetCorrectly(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
+				[Frozen] MockFileSystem mockFileSystem, [Frozen] TenantTargetArgs args, UploadTenantCommand sut)
+			{
+				mockFileSystem.AddFile(args.File, new MockFileData(json));
+				await sut.Execute().ConfigureAwait(false);
+				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
+				mockProject.Verify(m => m.CreateProjectVariables(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
+			}
+		}
+	}
+}

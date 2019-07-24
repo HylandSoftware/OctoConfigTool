@@ -20,6 +20,7 @@ namespace OctoConfig.Tests.TestFixture
 			{
 				ConfigureMembers = true
 			});
+			fixture.Customize(new FakeFileSystemCustomization());
 			return fixture;
 		}
 

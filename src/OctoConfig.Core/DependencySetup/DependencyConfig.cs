@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO.Abstractions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using OctoConfig.Core.Arguments;
@@ -6,6 +7,7 @@ using OctoConfig.Core.Commands;
 using OctoConfig.Core.Converter;
 using OctoConfig.Core.Octopus;
 using OctoConfig.Core.Secrets;
+using OctoConfig.Core.Secrets.Vault;
 using Octopus.Client;
 
 namespace OctoConfig.Core.DependencySetup
@@ -32,16 +34,19 @@ namespace OctoConfig.Core.DependencySetup
 			var factory = new OctopusClientFactory();
 			_coll.AddSingleton<IOctopusAsyncRepository>(new OctopusAsyncRepository(await factory.CreateAsyncClient(server).ConfigureAwait(false)));
 
+			_coll.AddSingleton<IFileSystem, FileSystem>();
+
+			_coll.AddSingleton<IVaultClientFactory, VaultClientFactory>();
 			_coll.AddSingleton<ISecretProviderFactory, SecretProviderFactory>();
 			_coll.AddSingleton<ISecretsMananger, SecretsMananger>();
 			_coll.AddSingleton<VaultKVV2Provider>();
 			_coll.AddSingleton<VaultProvider>();
 
-			_coll.AddSingleton<LibraryManager>();
-			_coll.AddSingleton<ProjectManager>();
+			_coll.AddSingleton<ILibraryManager, LibraryManager>();
+			_coll.AddSingleton<IProjectManager, ProjectManager>();
 			_coll.AddSingleton<ProjectClearer>();
 			_coll.AddSingleton<TenantClearer>();
-			_coll.AddSingleton<TenantManager>();
+			_coll.AddSingleton<ITenantManager, TenantManager>();
 			_coll.AddSingleton<VariableConverter>();
 
 			_coll.AddSingleton<ValidateLibraryCommand>();
