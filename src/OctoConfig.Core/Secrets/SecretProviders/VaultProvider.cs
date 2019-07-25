@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using OctoConfig.Core.Arguments;
+using OctoConfig.Core.DependencySetup;
 using OctoConfig.Core.Secrets.Vault;
-using VaultSharp;
 
 namespace OctoConfig.Core.Secrets
 {
@@ -11,8 +12,9 @@ namespace OctoConfig.Core.Secrets
 	{
 		private readonly string _mountPoint = null;
 		private readonly IVaultClientFactory _vaultClientFactory;
+		private readonly ILogger _logger;
 
-		public VaultProvider(FileArgsBase args, IVaultClientFactory vaultClientFactory)
+		public VaultProvider(FileArgsBase args, IVaultClientFactory vaultClientFactory, ILogger logger)
 		{
 			if (args == null)
 			{
@@ -22,7 +24,8 @@ namespace OctoConfig.Core.Secrets
 			{
 				_mountPoint = args.MountPoint;
 			}
-			_vaultClientFactory = vaultClientFactory;
+			_vaultClientFactory = vaultClientFactory ?? throw new ArgumentNullException(nameof(vaultClientFactory));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 		/// <summary>
@@ -44,21 +47,23 @@ namespace OctoConfig.Core.Secrets
 			}
 			catch(VaultSharp.Core.VaultApiException ex)
 			{
-				Console.Error.WriteLine($"Encountered a Vault API Exception on secret '{path}'");
-				Console.Error.WriteLine($"HTTP Error Code '{ex.HttpStatusCode}'");
-				Console.Error.Write("API Errors: ");
-				foreach(var item in ex.ApiErrors ?? Enumerable.Empty<string>())
+				var s = new StringBuilder();
+				s.Append("Encountered a Vault API Exception on secret '").Append(path).AppendLine("'");
+				s.Append("HTTP Error Code '").Append(ex.HttpStatusCode).AppendLine("'");
+				s.AppendLine("API Errors: ");
+				foreach (var item in ex?.ApiErrors ?? Enumerable.Empty<string>())
 				{
-					Console.Error.Write(item + " ");
+					s.Append("\t").Append(item).AppendLine(" ");
 				}
-				Console.Error.WriteLine();
-				Console.Error.Write("API Warnings: ");
-				foreach (var item in ex.ApiWarnings ?? Enumerable.Empty<string>())
+				s.AppendLine();
+				s.AppendLine("API Warnings: ");
+				foreach (var item in ex?.ApiWarnings ?? Enumerable.Empty<string>())
 				{
-					Console.Error.Write(item + " ");
+					s.Append("\t").Append(item).AppendLine(" ");
 				}
-				Console.Error.WriteLine();
-				Console.Error.WriteLine("Exception:" + ex.ToString());
+				s.AppendLine();
+				s.Append("Exception:").AppendLine(ex.ToString());
+				_logger.Error(s.ToString());
 				throw;
 			}
 		}

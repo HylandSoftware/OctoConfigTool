@@ -34,7 +34,7 @@ namespace OctoConfig.Tests
 				[Frozen] MockFileSystem mockFileSystem, [Frozen] ValidateTenantArgs args, ValidateTenantCommand sut)
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
-				await sut.Execute();
+				await sut.Execute().ConfigureAwait(false);
 				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
 				mockTenant.Verify(m => m.CreateTenantVariables(It.IsAny<List<SecretVariable>>(), It.Is<bool>(b => !b)), Times.Once);
 			}
@@ -44,7 +44,7 @@ namespace OctoConfig.Tests
 				[Frozen] MockFileSystem mockFileSystem, [Frozen] ValidateTenantArgs args, ValidateTenantCommand sut)
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
-				await sut.Execute();
+				await sut.Execute().ConfigureAwait(false);
 				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
 				mockTenant.Verify(m => m.CreateTenantVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), It.Is<bool>(b => !b)), Times.Once);
 			}

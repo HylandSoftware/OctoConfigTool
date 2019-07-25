@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO.Abstractions;
 using System.Threading.Tasks;
+using Cake.Core;
 using Microsoft.Extensions.DependencyInjection;
 using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Commands;
@@ -9,17 +10,18 @@ using OctoConfig.Core.Octopus;
 using OctoConfig.Core.Secrets;
 using OctoConfig.Core.Secrets.Vault;
 using Octopus.Client;
+using Serilog;
 
 namespace OctoConfig.Core.DependencySetup
 {
 	public static class DependencyConfig
 	{
-		private static readonly IServiceCollection _coll = new ServiceCollection();
 		public static IServiceProvider Container;
 
-		public static async Task Setup(ArgsBase args)
+		public static async Task Setup(ArgsBase args, ICakeContext context = null, IServiceCollection _coll = null, bool connectToOctopus = true)
 		{
-			if(String.IsNullOrEmpty(args.OctoUri))
+			var coll = _coll ?? new ServiceCollection();
+			if (String.IsNullOrEmpty(args.OctoUri))
 			{
 				throw new ArgumentException("Null or empty Octopus Deploy API URI", nameof(args.OctoUri));
 			}
@@ -28,68 +30,90 @@ namespace OctoConfig.Core.DependencySetup
 				throw new ArgumentException("Null or empty Octopus Deploy API key", nameof(args.ApiKey));
 			}
 
-			addArgs(args);
+			addArgs(args, coll);
 
-			var server = new OctopusServerEndpoint(args.OctoUri, args.ApiKey);
-			var factory = new OctopusClientFactory();
-			_coll.AddSingleton<IOctopusAsyncRepository>(new OctopusAsyncRepository(await factory.CreateAsyncClient(server).ConfigureAwait(false)));
+			if(context != null)
+			{
+				coll.AddSingleton<ILogger>(new CakeLoggerAbstraction(context.Log, null));
+			}
+			else
+			{
+				var serilogLogger = new LoggerConfiguration()
+					.WriteTo.Console();
+				if(args.Verbose)
+				{
+					serilogLogger.MinimumLevel.Verbose();
+				}
+				else
+				{
+					serilogLogger.MinimumLevel.Information();
+				}
+				coll.AddSingleton<ILogger>(new CakeLoggerAbstraction(null, serilogLogger.CreateLogger()));
+			}
 
-			_coll.AddSingleton<IFileSystem, FileSystem>();
+			if(connectToOctopus)
+			{
+				var server = new OctopusServerEndpoint(args.OctoUri, args.ApiKey);
+				var factory = new OctopusClientFactory();
+				coll.AddSingleton<IOctopusAsyncRepository>(new OctopusAsyncRepository(await factory.CreateAsyncClient(server).ConfigureAwait(false)));
+			}
 
-			_coll.AddSingleton<IVaultClientFactory, VaultClientFactory>();
-			_coll.AddSingleton<ISecretProviderFactory, SecretProviderFactory>();
-			_coll.AddSingleton<ISecretsMananger, SecretsMananger>();
-			_coll.AddSingleton<VaultKVV2Provider>();
-			_coll.AddSingleton<VaultProvider>();
+			coll.AddSingleton<IFileSystem, FileSystem>();
 
-			_coll.AddSingleton<ILibraryManager, LibraryManager>();
-			_coll.AddSingleton<IProjectManager, ProjectManager>();
-			_coll.AddSingleton<ProjectClearer>();
-			_coll.AddSingleton<TenantClearer>();
-			_coll.AddSingleton<ITenantManager, TenantManager>();
-			_coll.AddSingleton<VariableConverter>();
+			coll.AddSingleton<IVaultClientFactory, VaultClientFactory>();
+			coll.AddSingleton<ISecretProviderFactory, SecretProviderFactory>();
+			coll.AddSingleton<ISecretsMananger, SecretsMananger>();
+			coll.AddSingleton<VaultKVV2Provider>();
+			coll.AddSingleton<VaultProvider>();
 
-			_coll.AddSingleton<ValidateLibraryCommand>();
-			_coll.AddSingleton<UploadLibraryCommand>();
-			_coll.AddSingleton<UploadTenantCommand>();
-			_coll.AddSingleton<ClearVariableSetCommand>();
-			_coll.AddSingleton<ClearTenantCommand>();
-			_coll.AddSingleton<ClearProjectCommand>();
-			_coll.AddSingleton<ValidateTenantCommand>();
-			Container = _coll.BuildServiceProvider();
+			coll.AddSingleton<ILibraryManager, LibraryManager>();
+			coll.AddSingleton<IProjectManager, ProjectManager>();
+			coll.AddSingleton<ProjectClearer>();
+			coll.AddSingleton<TenantClearer>();
+			coll.AddSingleton<ITenantManager, TenantManager>();
+			coll.AddSingleton<VariableConverter>();
+
+			coll.AddSingleton<ValidateLibraryCommand>();
+			coll.AddSingleton<UploadLibraryCommand>();
+			coll.AddSingleton<UploadTenantCommand>();
+			coll.AddSingleton<ClearVariableSetCommand>();
+			coll.AddSingleton<ClearTenantCommand>();
+			coll.AddSingleton<ClearProjectCommand>();
+			coll.AddSingleton<ValidateTenantCommand>();
+			Container = coll.BuildServiceProvider();
 		}
 
-		private static void addArgs(ArgsBase args)
+		private static void addArgs(ArgsBase args, IServiceCollection coll)
 		{
-			_coll.AddSingleton(args);
+			coll.AddSingleton(args);
 			if(args is FileArgsBase fArgs)
 			{
-				_coll.AddSingleton(fArgs);
+				coll.AddSingleton(fArgs);
 			}
 			if(args is LibraryTargetArgs lArgs)
 			{
-				_coll.AddSingleton(lArgs);
+				coll.AddSingleton(lArgs);
 			}
 			switch (args)
 			{
 				case ClearVariableSetArgs cArgs:
-					_coll.AddSingleton(cArgs);
+					coll.AddSingleton(cArgs);
 					break;
 				case ValidateArgs libArgs:
-					_coll.AddSingleton(libArgs);
+					coll.AddSingleton(libArgs);
 					break;
 				case ClearProjectArgs cpArgs:
-					_coll.AddSingleton(cpArgs);
+					coll.AddSingleton(cpArgs);
 					break;
 				case ClearTenantArgs ctArgs:
-					_coll.AddSingleton(ctArgs);
+					coll.AddSingleton(ctArgs);
 					break;
 				case ValidateTenantArgs vtArgs:
-					_coll.AddSingleton(vtArgs);
-					_coll.AddSingleton<TenantTargetArgs>(vtArgs);
+					coll.AddSingleton(vtArgs);
+					coll.AddSingleton<TenantTargetArgs>(vtArgs);
 					break;
 				case TenantTargetArgs pAgs:
-					_coll.AddSingleton(pAgs);
+					coll.AddSingleton(pAgs);
 					break;
 				default:
 					throw new ArgumentException($"Unknown argument type '{args.GetType()}'", nameof(args));

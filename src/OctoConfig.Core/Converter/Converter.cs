@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using OctoConfig.Core.Arguments;
+using OctoConfig.Core.DependencySetup;
 
 namespace OctoConfig.Core.Converter
 {
@@ -11,8 +12,9 @@ namespace OctoConfig.Core.Converter
 		internal string _separator;
 		private readonly FileArgsBase _args;
 		private const string _globVariableName = "ConcatEnvironmentVars";
+		private readonly ILogger _logger;
 
-		public VariableConverter(FileArgsBase args)
+		public VariableConverter(FileArgsBase args, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			switch (args.VariableType)
@@ -27,6 +29,8 @@ namespace OctoConfig.Core.Converter
 				default:
 					throw new ArgumentException($"Unknown enum vaule of {args.VariableType}", nameof(args.VariableType));
 			}
+
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 		private List<SecretVariable> flatten(string strJson)
@@ -106,7 +110,7 @@ namespace OctoConfig.Core.Converter
 					x.Name = String.Concat(_args.Prefix, x.Name);
 					if (String.IsNullOrEmpty(x.Value))
 					{
-						Console.WriteLine($"WARN: key '{x.Name}' has no matching value");
+						_logger.Warning($"Key '{x.Name}' has no matching value");
 					}
 				});
 			if(_args.VariableType == VariableType.EnvironmentGlob)

@@ -12,6 +12,7 @@ using Octopus.Client.Repositories.Async;
 using Octopus.Client.Model;
 using System.Linq;
 using OctoConfig.Tests.TestFixture;
+using OctoConfig.Core.DependencySetup;
 
 namespace OctoConfig.Tests
 {
@@ -24,7 +25,7 @@ namespace OctoConfig.Tests
 		{
 			octoMoq.Setup(o => o.Projects).Returns(Mock.Of<IProjectRepository>());
 			var args = new TenantTargetArgs() { ProjectName = projectName };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateTenantVariables(new List<SecretVariable>());
 			test.Should().Throw<ArgumentException>().WithMessage($"Unable to find a project with the name '{projectName}'");
@@ -40,7 +41,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Projects).Returns(projMoq.Object);
 			octoMoq.Setup(o => o.Tenants).Returns(Mock.Of<ITenantRepository>());
 			var args = new TenantTargetArgs() { TenantName = tenantName };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateTenantVariables(new List<SecretVariable>());
 			test.Should().Throw<ArgumentException>().WithMessage($"Unable to find a tenant with the name '{tenantName}'");
@@ -57,7 +58,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(Mock.Of<IEnvironmentRepository>());
 
 			var args = new TenantTargetArgs() { Environments = new List<string>() { enviroName } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateTenantVariables(new List<SecretVariable>());
 			test.Should().Throw<ArgumentException>().WithMessage($"Unable to find an environment with the name '{enviroName}'");
@@ -73,7 +74,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(Mock.Of<IEnvironmentRepository>());
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateTenantVariables(new List<SecretVariable>());
 			test.Should().Throw<ArgumentException>().WithMessage($"Tenant {tenantName} is not linked with project {projectName}");
@@ -89,7 +90,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateTenantVariables(new List<SecretVariable>());
 			test.Should().Throw<ArgumentException>().WithMessage($"Tenant {tenantName} is not linked with environment {environment}");
@@ -106,7 +107,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateTenantVariables(new List<SecretVariable>() { new SecretVariable("aA", "g") });
 			test.Should().Throw<ArgumentException>().WithMessage($"The loaded configuration for tenant '{tenantName}' has variable 'aA' not found in the project '{projectName}'");
@@ -140,7 +141,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateTenantVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) }).ConfigureAwait(false);
 		}
@@ -174,7 +175,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateTenantVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) { IsSecret = true } }).ConfigureAwait(false);
 		}
@@ -195,7 +196,7 @@ namespace OctoConfig.Tests
 				});
 			var mockTen = mockedTen(tenantName, projectName, tenProj);
 			mockTen.Setup(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()))
-				.Returns<TenantResource, TenantVariableResource>((tr, tvr) =>
+				.Returns<TenantResource, TenantVariableResource>((_, tvr) =>
 				{
 					var prj = tvr.ProjectVariables[projectName];
 					var env = prj.Variables.Single().Value;
@@ -209,7 +210,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateTenantVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) }).ConfigureAwait(false);
 		}
@@ -225,7 +226,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Tenants).Returns(mockTen.Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateTenantVariables(new List<SecretVariable>(), apply: false).ConfigureAwait(false);
 			mockTen.Verify(t => t.ModifyVariables(It.IsAny<TenantResource>(), It.IsAny<TenantVariableResource>()), Times.Never);
@@ -255,7 +256,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Environments).Returns(mockEnv(environment).Object);
 
 			var args = new TenantTargetArgs() { TenantName = tenantName, ProjectName = projectName, Environments = new List<string>() { environment } };
-			var sut = new TenantManager(args, octoMoq.Object);
+			var sut = new TenantManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> act = () => sut.CreateTenantVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) });
 			act.Should().NotThrow();

@@ -53,10 +53,7 @@ namespace OctoConfig.Tests
 			{
 				var mockKVV1 = new Mock<IKeyValueSecretsEngineV1>();
 				mockKVV1.Setup(m => m.ReadSecretAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-					.Returns<string, string, string>((_, __, ___) =>
-					{
-						return Task.FromResult(new Secret<Dictionary<string, object>> () { Data = new Dictionary<string, object>() { { "value", "secret" } } });
-					});
+					.Returns<string, string, string>((_, __, ___) => Task.FromResult(new Secret<Dictionary<string, object>>() { Data = new Dictionary<string, object>() { { "value", "secret" } } }));
 				mockKVV1.CallBase = false;
 				mockKV.Setup(m => m.V1).Returns(() => mockKVV1.Object);
 				mockSecrets.Setup(m => m.KeyValue).Returns(() => mockKV.Object);

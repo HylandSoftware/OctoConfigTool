@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using FluentAssertions;
+using Moq;
 using OctoConfig.Core;
 using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Converter;
+using OctoConfig.Core.DependencySetup;
 using Xunit;
 
 namespace OctoConfig.Tests
@@ -12,7 +14,7 @@ namespace OctoConfig.Tests
 		[Fact]
 		public void BasicJsonTest()
 		{
-			var js = new VariableConverter(new JsonReplacementArgs() { MergeArrays = false, VariableType = VariableType.JsonConversion });
+			var js = new VariableConverter(new JsonReplacementArgs() { MergeArrays = false, VariableType = VariableType.JsonConversion }, Mock.Of<ILogger>());
 			var vars = js.Convert("{\"a\":\"b\"}");
 			vars.Single().Name.Should().Be("a");
 		}
@@ -23,7 +25,7 @@ namespace OctoConfig.Tests
 		[InlineData("{\"a\": { \"b\" : [ \"c\" ] } }", "a:b:0", "c")]
 		public void ColonSeparatorTest(string json, string expectedName, string expectedValue)
 		{
-			var js = new VariableConverter(new JsonReplacementArgs() { MergeArrays = false, VariableType = VariableType.JsonConversion });
+			var js = new VariableConverter(new JsonReplacementArgs() { MergeArrays = false, VariableType = VariableType.JsonConversion }, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().Name.Should().Be(expectedName);
 			vars.Single().Value.Should().Be(expectedValue);

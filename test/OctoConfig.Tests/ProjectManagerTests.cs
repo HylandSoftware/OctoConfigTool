@@ -13,6 +13,7 @@ using Octopus.Client.Model;
 using System.Linq;
 using OctoConfig.Tests.TestFixture;
 using AutoFixture.Xunit2;
+using OctoConfig.Core.DependencySetup;
 
 namespace OctoConfig.Tests
 {
@@ -25,7 +26,7 @@ namespace OctoConfig.Tests
 		{
 			octoMoq.Setup(o => o.Projects).Returns(Mock.Of<IProjectRepository>());
 			var args = new TenantTargetArgs() { ProjectName = projectName };
-			var sut = new ProjectManager(args, octoMoq.Object);
+			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateProjectVariables(new List<SecretVariable>());
 			test.Should().Throw<ArgumentException>().WithMessage($"Unable to find a project with the name '{projectName}'");
@@ -53,7 +54,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Projects).Returns(mockProj.Object);
 
 			var args = new TenantTargetArgs() { ProjectName = projectName };
-			var sut = new ProjectManager(args, octoMoq.Object);
+			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateProjectVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) }).ConfigureAwait(false);
 		}
@@ -80,7 +81,7 @@ namespace OctoConfig.Tests
 			octoMoq.Setup(o => o.Projects).Returns(mockProj.Object);
 
 			var args = new TenantTargetArgs() { ProjectName = projectName };
-			var sut = new ProjectManager(args, octoMoq.Object);
+			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateProjectVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) { IsSecret = true } }).ConfigureAwait(false);
 		}

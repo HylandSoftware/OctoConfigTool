@@ -51,10 +51,7 @@ namespace OctoConfig.Tests
 			{
 				var mockKVV2 = new Mock<IKeyValueSecretsEngineV2>();
 				mockKVV2.Setup(m => m.ReadSecretAsync(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<string>(), It.IsAny<string>()))
-					.Returns<string, int?, string, string>((_, __, ___, ____) =>
-					{
-						return Task.FromResult(new Secret<SecretData>() { Data = new SecretData() { Data = new Dictionary<string, object>() { { "value", "secret" } } } });
-					});
+					.Returns<string, int?, string, string>((_, __, ___, ____) => Task.FromResult(new Secret<SecretData>() { Data = new SecretData() { Data = new Dictionary<string, object>() { { "value", "secret" } } } }));
 				mockKVV2.CallBase = false;
 				mockKV.Setup(m => m.V2).Returns(() => mockKVV2.Object);
 				mockSecrets.Setup(m => m.KeyValue).Returns(() => mockKV.Object);
@@ -62,7 +59,7 @@ namespace OctoConfig.Tests
 				mockClient.Setup(m => m.V1).Returns(() => mockV1.Object);
 				mockFact.Setup(m => m.GetClient()).Returns(() => mockClient.Object);
 
-				var actual = await sut.GetSecret(path);
+				var actual = await sut.GetSecret(path).ConfigureAwait(false);
 				actual.Should().Be("secret");
 			}
 		}

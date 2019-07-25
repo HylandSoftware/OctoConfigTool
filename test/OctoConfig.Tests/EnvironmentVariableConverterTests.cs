@@ -1,7 +1,9 @@
 ﻿using System.Linq;
 using FluentAssertions;
+using Moq;
 using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Converter;
+using OctoConfig.Core.DependencySetup;
 using Xunit;
 
 namespace OctoConfig.Tests
@@ -12,7 +14,7 @@ namespace OctoConfig.Tests
 		public void BasicEnviroTest()
 		{
 			var args = new FileArgsBase() { Prefix = "", MergeArrays = false, VariableType = VariableType.Environment };
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert("{\"a\":\"b\"}");
 			vars.Single().Name.Should().Be("a");
 		}
@@ -24,7 +26,7 @@ namespace OctoConfig.Tests
 		public void UnderscoreSeparatorTest(string json, string expectedName, string expectedValue)
 		{
 			var args = new FileArgsBase() { Prefix = "", MergeArrays = false, VariableType = VariableType.Environment };
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().Name.Should().Be(expectedName);
 			vars.Single().Value.Should().Be(expectedValue);
@@ -37,7 +39,7 @@ namespace OctoConfig.Tests
 		public void PrefixUnderscoreSeparatorTest(string json, string prefix, string expectedName)
 		{
 			var args = new FileArgsBase() { Prefix = prefix, MergeArrays = false, VariableType = VariableType.Environment };
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().Name.Should().Be(expectedName);
 		}
@@ -47,7 +49,7 @@ namespace OctoConfig.Tests
 		public void ArrayFlattenTest(string json, string prefix, string expectedName)
 		{
 			var args = new FileArgsBase() { Prefix = prefix, MergeArrays = true };
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().Name.Should().Be(expectedName);
 		}
@@ -57,7 +59,7 @@ namespace OctoConfig.Tests
 		[InlineData("test2", "{ \"list\": [ \"a\", \"b\", \"c\" ] }")]
 		public void PrefixTest(string prefix, string json)
 		{
-			var js = new VariableConverter(new FileArgsBase() { Prefix = prefix, MergeArrays = false });
+			var js = new VariableConverter(new FileArgsBase() { Prefix = prefix, MergeArrays = false }, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			foreach (var expected in vars)
 			{
@@ -71,7 +73,7 @@ namespace OctoConfig.Tests
 		[InlineData("test2", "{ \"list\": [ \"a\", \"b\", \"c\" ] }")]
 		public void FlattenArrayPrefixTest(string prefix, string json)
 		{
-			var js = new VariableConverter(new FileArgsBase() { Prefix = prefix, MergeArrays = true });
+			var js = new VariableConverter(new FileArgsBase() { Prefix = prefix, MergeArrays = true }, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			foreach (var expected in vars)
 			{

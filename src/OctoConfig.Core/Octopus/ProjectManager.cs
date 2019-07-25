@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using OctoConfig.Core.Arguments;
+using OctoConfig.Core.DependencySetup;
 using Octopus.Client;
 
 namespace OctoConfig.Core.Octopus
@@ -16,11 +17,13 @@ namespace OctoConfig.Core.Octopus
 	{
 		private readonly TenantTargetArgs _args;
 		private readonly IOctopusAsyncRepository _octopusRepository;
+		private readonly ILogger _logger;
 
-		public ProjectManager(TenantTargetArgs args, IOctopusAsyncRepository octopusRepository)
+		public ProjectManager(TenantTargetArgs args, IOctopusAsyncRepository octopusRepository, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_octopusRepository = octopusRepository ?? throw new ArgumentNullException(nameof(octopusRepository));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 		public async Task CreateProjectVariables(List<SecretVariable> vars)
@@ -40,7 +43,7 @@ namespace OctoConfig.Core.Octopus
 				}
 			}
 			var after = project.Templates.Count;
-			Console.WriteLine($"Created {after - before} variable templates in project {_args.ProjectName}");
+			_logger.Information($"Created {after - before} variable templates in project {_args.ProjectName}");
 			await _octopusRepository.Projects.Modify(project).ConfigureAwait(false);
 		}
 	}

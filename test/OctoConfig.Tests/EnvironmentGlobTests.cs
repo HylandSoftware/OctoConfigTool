@@ -1,8 +1,10 @@
 ﻿using System.Linq;
 using AutoFixture;
 using FluentAssertions;
+using Moq;
 using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Converter;
+using OctoConfig.Core.DependencySetup;
 using OctoConfig.Tests.TestFixture;
 using Xunit;
 
@@ -21,7 +23,7 @@ namespace OctoConfig.Tests
 				.With(a => a.MergeArrays, false)
 				.With(a => a.VariableType, VariableType.EnvironmentGlob)
 				.Create();
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().Name.Should().Be(expectedName);
 		}
@@ -37,7 +39,7 @@ namespace OctoConfig.Tests
 				.With(a => a.MergeArrays, false)
 				.With(a => a.VariableType, VariableType.EnvironmentGlob)
 				.Create();
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().Value.Should().Be(expectedValue);
 		}
@@ -53,7 +55,7 @@ namespace OctoConfig.Tests
 				.With(a => a.MergeArrays, false)
 				.With(a => a.VariableType, VariableType.EnvironmentGlob)
 				.Create();
-			var js = new VariableConverter(args);
+			var js = new VariableConverter(args, Mock.Of<ILogger>());
 			var vars = js.Convert(json);
 			vars.Single().IsSecret.Should().BeTrue();
 		}

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Converter;
+using OctoConfig.Core.DependencySetup;
 using OctoConfig.Core.Octopus;
 using OctoConfig.Core.Secrets;
 
@@ -17,15 +18,17 @@ namespace OctoConfig.Core.Commands
 		private readonly ILibraryManager _libraryManager;
 		private readonly VariableConverter _jsonValidator;
 		private readonly IFileSystem _fileSystem;
+		private readonly ILogger _logger;
 
 		public ValidateLibraryCommand(ValidateArgs args, ISecretsMananger secretsMananger, ILibraryManager libraryManager,
-			VariableConverter jsonValidator, IFileSystem fileSystem)
+			VariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
 			_libraryManager = libraryManager ?? throw new ArgumentNullException(nameof(libraryManager));
 			_jsonValidator = jsonValidator ?? throw new ArgumentNullException(nameof(jsonValidator));
 			_fileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
+			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
 		public async Task Execute()
@@ -37,8 +40,8 @@ namespace OctoConfig.Core.Commands
 
 			var secretCount = vars.Count(s => s.IsSecret);
 			var pub = vars.Count - secretCount;
-			Console.WriteLine($"Found a total of {vars.Count} variables.");
-			Console.WriteLine($"{secretCount} were secrets and {pub} were not");
+			_logger.Information($"Found a total of {vars.Count} variables.");
+			_logger.Information($"{secretCount} were secrets and {pub} were not");
 		}
 	}
 }
