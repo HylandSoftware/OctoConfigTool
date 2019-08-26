@@ -10,22 +10,13 @@ A tool designed to convert json configuration files into a format usable by Octo
 It supports several secrets providers and pulls secrets based on values in the flat configuration files.
 Works with tenanted and non-tenanted deployment schemes.
 
-## Usage
+## Tool Usage
 
-The nuget package `OctoConfigTool` and Docker image [`hylandsoftware/octoconfigtool`](https://hub.docker.com/u/hylandsoftware) both use the tool compiled to a .Net Core executable dll called `OctoConfigTool.dll`. All of the command line examples in this document must be prefaced with `dotnet OctoConfigTool.dll` to execute the tool, the .Net runtime handles passing the settings after the dll into the tools `Main` function for parsing.
+This tool is published in two ways, as a [dotnet tool](https://www.nuget.org/packages/OctoConfigTool/), and a [cake addin](https://www.nuget.org/packages/OctoConfig.Core/)
 
-A full example of calling the tool from a shell looks like this:
+### DotNet Tool
 
-```bash
-dotnet OctoConfigTool.dll upload-library -f "C:\QA\appsettings.json" --library "API Config" -e QA \
--r api-role -a "API-KEY" -o https://octodeploy/api \
---merge --vaultUri "http://vaultapi:8200" \
---vaultRole "VAULT_PROVIDED_ROLE_GUID" --secret "VAULT_PROVIDED_ROLE_SECRET_GUID" \
---variableType JsonConversion
-```
-
-It is also published as a [dotnet tool](https://docs.microsoft.com/en-us/dotnet/core/tools/global-tools) to [NuGet](https://nuget.org). So you can install it locally with `dotnet tool install -g OctoConfigTool`.
-Once it's installed simply typing `OctoConfigTool` into any shell will execute the tool. Turning the above into this:
+Installing the tool is easy, just type `dotnet tool install OctoConfigTool --global` into a shell. Once it's installed simply typing `OctoConfigTool` will execute the tool. Turning the above into this:
 
 ```bash
 OctoConfigTool upload-library -f "C:\QA\appsettings.json" --library "API Config" -e QA \
@@ -35,16 +26,16 @@ OctoConfigTool upload-library -f "C:\QA\appsettings.json" --library "API Config"
 --variableType JsonConversion
 ```
 
-### Shared Variables
+#### Shared Variables
 
-#### Required for ALL commands
+##### Required for ALL commands
 
 - `-a`, `--apikey`
   - The Octopus API key to use
 - `-o`, `--octotUri`
   - The Octopus API URI to upload to
 
-#### Optional for all commands
+##### Optional for all commands
 
 - `-m`, `--merge`
   - Forces arrays in json file to be merged into one variable, rather than generated with indices
@@ -54,7 +45,7 @@ OctoConfigTool upload-library -f "C:\QA\appsettings.json" --library "API Config"
   - Max verbosity
   - Not Required
 
-#### Required for Upload commands
+##### Required for Upload commands
 
 - `-f`, `--file`
   - The json file to parse into variables
@@ -69,7 +60,7 @@ OctoConfigTool upload-library -f "C:\QA\appsettings.json" --library "API Config"
   - Options are `Environment`, `JsonConversion`, `EnvironmentGlob`
   - `EnvironmentGlob` makes a comma-separated list of variables, and uploads them as a secret using the variable name `ConcatEnvironmentVars`
 
-#### Optional for Upload commands
+##### Optional for Upload commands
 
 - `-e`, `--environments`
   - The Octopus Environment(s) to scope variables to
@@ -91,7 +82,7 @@ OctoConfigTool upload-library -f "C:\QA\appsettings.json" --library "API Config"
 
 **Note**: If the json file has any secrets and one of the parameters for Vault is not present, the tool will fail.
 
-### Targeting a Library
+#### Targeting a Library
 
 Targeting a library has additional arguments
 
@@ -101,7 +92,7 @@ Targeting a library has additional arguments
   - A list of Octopus roles to scope variables to
   - Not required
 
-#### Uploading as Json replacement variables
+##### Uploading as Json replacement variables
 
 ```bash
 upload-library -f "C:\QA\appsettings.json" --library "API Config" -e QA \
@@ -111,7 +102,7 @@ upload-library -f "C:\QA\appsettings.json" --library "API Config" -e QA \
 --variableType JsonConversion
 ```
 
-#### Uploading as Environment Variables
+##### Uploading as Environment Variables
 
 ```bash
 upload-library -f "C:\QA\appsettings.json" -l "API Config" -e QA \
@@ -121,7 +112,7 @@ upload-library -f "C:\QA\appsettings.json" -l "API Config" -e QA \
 --variableType JsonConversion --roles api-role web-role
 ```
 
-#### Uploading as Concatenated Environment Variables
+##### Uploading as Concatenated Environment Variables
 
 This option creates all the environment variables as normal, but concatenates them into a comma-separated list. This list is then uploaded into one variable that is always marked `secret`
 This variable name is hard-coded in the tool as `ConcatEnvironmentVars`.
@@ -138,7 +129,7 @@ upload-library -f "C:\QA\appsettings.json" -l "Test-Var-Set" -e QA \
 --variableType EnvironmentGlob
 ```
 
-### Clearing a Library Variable Set
+#### Clearing a Library Variable Set
 
 This option deletes **ALL** the variables in the specified set, leaving it existing, but empty.
 
@@ -150,7 +141,7 @@ Example:
 clear-library -l "Test-Var-Set" -a "API-KEY" -o https://octodeploy/api -f ""
 ```
 
-### Targeting a Tenant
+#### Targeting a Tenant
 
 This command takes the variables from the json file and creates project variable templates in the specified project.
 It then takes those created/existing templates and matches with the variable values and uploads them to the specified Tenant.
@@ -175,7 +166,7 @@ upload-project --tenant "QA Infra" --project "Deploy API" --variableType Environ
 -f "C:\QA\appsettings.json" -e QA RC
 ```
 
-### Clearing a Project of Variable Templates
+#### Clearing a Project of Variable Templates
 
 Deletes **ALL** the variables templates in the specified project
 
@@ -183,7 +174,7 @@ Deletes **ALL** the variables templates in the specified project
 clear-project --project "Deploy API" -o https://octodeploy/api -a "API-KEY"
 ```
 
-### Clearing a Tenants Variables
+#### Clearing a Tenants Variables
 
 Deletes **ALL** the variables in the specified tenant
 
@@ -191,74 +182,11 @@ Deletes **ALL** the variables in the specified tenant
 clear-tenant --tenant "PreProduction" -o https://octodeploy/api -a "API-KEY"
 ```
 
-## Secrets
+### Cake Addin
 
-Secrets are identified by starting them with `#{` and ending with `}`. In between them is an identifier for the secret and secret provider. The format of this identifier can vary based on the [secret provider](#secret-providers).
-For example, the config file could contain the following `#{RC/RedisConnectionString}`.
-This tells the tool to use Vault and then identifier is a URI path to the secret, so it calls out to this URL `https://vaultapi:8200/v1/secret/RC/RedisConnectionString` for the secret.
+The cake addin property names match the name and meaning of parameters for the dotnet tool. Refer to them for details.
 
-Secrets are uploaded to Octopus as `Sensitive` so they are still stored securely and cannot be read.
-
-The tool does not write or update secrets to any of the supported providers.
-
-### Secret Providers
-
-The tool supports specifying what secret provider a secret is in. All providers use this format for specification:
-
-`#{<ProviderId>:<SecretIdentifier>}`
-
-So a Vault V1 secret would look like this:
-
-`#{VaultKVV1:QA/API/ConnectionString}`
-
-If no provider is specified then it will default to using Vault Key-Value V1.
-
-#### Vault Key/Value V1
-
-[Vault KV V2](https://www.vaultproject.io/docs/secrets/kv/kv-v1.html) engine.
-The provider ID is `VaultKVV1`
-
-So a Vault V1 secret would look like this:
-
-`#{VaultKVV1:QA/API/ConnectionString}` or `#{QA/API/ConnectionString}`
-
-The secret itself is expected to be the first and only thing at that path. And the json version should look like the following:
-
-```json
-{
-  "value":"SECRET_HERE",
-}
-```
-
-These are accessed by the tool as a dictionary that just grabs the first key/value pair and only uses the value.
-Other secrets at the location will be ignored.
-
-#### Vault Key/Value V2
-
-[Vault KV V2](https://www.vaultproject.io/docs/secrets/kv/kv-v2.html) engine.
-
-The provider ID is `VaultKVV2`
-
-So a Vault V1 secret would look like this:
-
-`#{VaultKVV2:QA/API/ConnectionString}`
-
-The secret itself is expected to be the first and only thing at that path. And the json version should look like the following:
-
-```json
-"data" : {
-    "value":"SECRET_HERE",
-}
-```
-
-These are accessed by the tool as a dictionary that just grabs the first key/value pair and only uses the value.
-Other secrets at the location will be ignored.
-
-## Cake
-
-There are also [Cake](https://cakebuild.net/) bindings for the tool that use the same parameters as the Docker image.
-
-### Cake Library Targets
+#### Cake Library Targets
 
 ```csharp
 #addin "nuget:?package=OctoLib.Core&version=0.3.1"
@@ -334,7 +262,7 @@ void ClearLibrary(string octoApiUri, string octoApiKey, string library)
 }
 ```
 
-### Cake Tenant Targets
+#### Cake Tenant Targets
 
 ```csharp
 void UploadTenantJson(string octoApiUri, string octoApiKey, string vaultUri, string vaultRoleId, string vaultSecretId,
@@ -408,7 +336,7 @@ void ClearProjectConfig(string octoApiUri, string octoApiKey, string vaultUri, s
 }
 ```
 
-### Deprecated Cake Targets
+#### Deprecated Cake Targets
 
 ```csharp
 #addin "nuget:?package=OctoLib.Core&version=0.3.1"
@@ -454,3 +382,66 @@ void UploadJson(string octoApiUri, string octoApiKey, string vaultUri, string va
     });
 }
 ```
+
+## Secrets
+
+Secrets are identified by starting them with `#{` and ending with `}`. In between them is an identifier for the secret and secret provider. The format of this identifier can vary based on the [secret provider](#secret-providers).
+For example, the config file could contain the following `#{RC/RedisConnectionString}`.
+This tells the tool to use Vault and then identifier is a URI path to the secret, so it calls out to this URL `https://vaultapi:8200/v1/secret/RC/RedisConnectionString` for the secret.
+
+Secrets are uploaded to Octopus as `Sensitive` so they are still stored securely and cannot be read.
+
+The tool does not write or update secrets to any of the supported providers.
+
+### Secret Providers
+
+The tool supports specifying what secret provider a secret is stored in. All providers use this format for specification:
+
+`#{<ProviderId>:<SecretIdentifier>}`
+
+So a Vault V1 secret would look like this:
+
+`#{VaultKVV1:QA/API/ConnectionString}`
+
+If no provider is specified then it will default to using Vault Key-Value V1.
+
+#### Vault Key/Value V1
+
+[Vault KV V2](https://www.vaultproject.io/docs/secrets/kv/kv-v1.html) engine.
+The provider ID is `VaultKVV1`
+
+So a Vault V1 secret would look like this:
+
+`#{VaultKVV1:QA/API/ConnectionString}` or `#{QA/API/ConnectionString}`
+
+The secret itself is expected to be the first and only thing at that path. And the json version should look like the following:
+
+```json
+{
+  "value":"SECRET_HERE",
+}
+```
+
+These are accessed by the tool as a dictionary that just grabs the first key/value pair and only uses the value.
+Other secrets at the location will be ignored.
+
+#### Vault Key/Value V2
+
+[Vault KV V2](https://www.vaultproject.io/docs/secrets/kv/kv-v2.html) engine.
+
+The provider ID is `VaultKVV2`
+
+So a Vault V1 secret would look like this:
+
+`#{VaultKVV2:QA/API/ConnectionString}`
+
+The secret itself is expected to be the first and only thing at that path. And the json version should look like the following:
+
+```json
+"data" : {
+    "value":"SECRET_HERE",
+}
+```
+
+These are accessed by the tool as a dictionary that just grabs the first key/value pair and only uses the value.
+Other secrets at the location will be ignored.
