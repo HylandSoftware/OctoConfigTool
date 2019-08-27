@@ -90,6 +90,7 @@ Task("package")
 	});
 
 Task("publish")
+	.ContinueOnError()
 	.Does(() =>
 	{
 		PublishPackages(nugetPublishUrl, nugetApiKey);
@@ -110,6 +111,5 @@ Task("ci-publish")
 
 Task("Default")
     .IsDependentOn("ci-test");
-
 
 RunTarget(target);
