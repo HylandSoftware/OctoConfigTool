@@ -80,6 +80,7 @@ namespace OctoConfig.Core.DependencySetup
 			coll.AddSingleton<ClearTenantCommand>();
 			coll.AddSingleton<ClearProjectCommand>();
 			coll.AddSingleton<ValidateTenantCommand>();
+			coll.AddSingleton<UploadProjectCommand>();
 			Container = coll.BuildServiceProvider();
 		}
 
@@ -93,6 +94,15 @@ namespace OctoConfig.Core.DependencySetup
 			if(args is LibraryTargetArgs lArgs)
 			{
 				coll.AddSingleton(lArgs);
+			}
+			if (args is ProjectTargetArgs ptArgs)
+			{
+				coll.AddSingleton(ptArgs);
+				coll.AddSingleton<IProjectArgsBase>(new ProjectArgsBase { ProjectName = ptArgs.ProjectName });
+			}
+			if (args is ProjectArgsBase pbArgs)
+			{
+				coll.AddSingleton(pbArgs);
 			}
 			switch (args)
 			{
@@ -114,6 +124,9 @@ namespace OctoConfig.Core.DependencySetup
 					break;
 				case TenantTargetArgs pAgs:
 					coll.AddSingleton(pAgs);
+					break;
+				case UploadProjectArgs upArgs:
+					coll.AddSingleton(upArgs);
 					break;
 				default:
 					throw new ArgumentException($"Unknown argument type '{args.GetType()}'", nameof(args));

@@ -25,7 +25,7 @@ namespace OctoConfig.Tests
 		public void MissingProjectThrows(string projectName, [Frozen] Mock<IOctopusAsyncRepository> octoMoq)
 		{
 			octoMoq.Setup(o => o.Projects).Returns(Mock.Of<IProjectRepository>());
-			var args = new TenantTargetArgs() { ProjectName = projectName };
+			var args = new ProjectArgsBase() { ProjectName = projectName };
 			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			Func<Task> test = () => sut.CreateProjectVariables(new List<SecretVariable>());
@@ -53,7 +53,7 @@ namespace OctoConfig.Tests
 				});
 			octoMoq.Setup(o => o.Projects).Returns(mockProj.Object);
 
-			var args = new TenantTargetArgs() { ProjectName = projectName };
+			var args = new ProjectArgsBase() { ProjectName = projectName };
 			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateProjectVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) }).ConfigureAwait(false);
@@ -80,7 +80,7 @@ namespace OctoConfig.Tests
 				});
 			octoMoq.Setup(o => o.Projects).Returns(mockProj.Object);
 
-			var args = new TenantTargetArgs() { ProjectName = projectName };
+			var args = new ProjectArgsBase() { ProjectName = projectName };
 			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
 
 			await sut.CreateProjectVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) { IsSecret = true } }).ConfigureAwait(false);

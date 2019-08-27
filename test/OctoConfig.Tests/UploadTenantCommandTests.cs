@@ -36,7 +36,7 @@ namespace OctoConfig.Tests
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
 				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
-				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>()), Times.Once);
+				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>(), false), Times.Once);
 			}
 
 			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
@@ -46,7 +46,7 @@ namespace OctoConfig.Tests
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
 				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
-				mockProject.Verify(m => m.CreateProjectVariables(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
+				mockProject.Verify(m => m.CreateProjectVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), false), Times.Once);
 			}
 		}
 	}

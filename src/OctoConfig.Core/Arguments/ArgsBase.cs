@@ -18,6 +18,17 @@ namespace OctoConfig.Core.Arguments
 		public bool MergeArrays { get; set; }
 	}
 
+	public interface IProjectArgsBase
+	{
+		string ProjectName { get; set; }
+	}
+
+	public class ProjectArgsBase : ArgsBase, IProjectArgsBase
+	{
+		[Option('p', "project", Required = true, HelpText = "The Octopus project to match variables with")]
+		public string ProjectName { get; set; }
+	}
+
 	public class FileArgsBase : ArgsBase
 	{
 		[Option('f', "file", Required = true, HelpText = "The json file to parse into variables")]

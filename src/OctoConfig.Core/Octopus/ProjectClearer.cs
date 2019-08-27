@@ -7,10 +7,10 @@ namespace OctoConfig.Core.Octopus
 {
 	public class ProjectClearer
 	{
-		private readonly ClearProjectArgs _args;
+		private readonly IProjectArgsBase _args;
 		private readonly IOctopusAsyncRepository _octopusRepository;
 
-		public ProjectClearer(ClearProjectArgs args, IOctopusAsyncRepository octopusRepository)
+		public ProjectClearer(IProjectArgsBase args, IOctopusAsyncRepository octopusRepository)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_octopusRepository = octopusRepository ?? throw new ArgumentNullException(nameof(octopusRepository));
