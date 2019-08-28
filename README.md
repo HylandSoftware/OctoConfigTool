@@ -354,6 +354,30 @@ void ClearTenantConfig(string octoApiUri, string octoApiKey, string vaultUri, st
     ClearTenantConfig(new TenantTargetArgs(){ ... });
 }
 
+
+```
+#### Cake Project Targets
+
+```csharp
+void UploadProjectJson(string octoApiUri, string octoApiKey, string vaultUri, string vaultRoleId, string vaultSecretId,
+    List<string> enviros, List<string> roles, string project, string filePath, string prefix, bool clear)
+{
+    Information($"Uploading {filePath}");
+    UploadProject(new UploadProjectArgs(){
+        File = filePath,
+        ApiKey = octoApiKey,
+        OctoUri = octoApiUri,
+        ProjectName = project,
+        Environments = enviros,
+        OctoRoles =  roles,
+        VaultUri = vaultUri,
+        VaultRoleId = vaultRoleId,
+        VaultSecretId = vaultSecretId,
+        VariableType = VariableType.JsonConversion,
+        Clear = clear
+    });
+}
+
 void ClearProjectConfig(string octoApiUri, string octoApiKey, string vaultUri, string vaultRoleId, string vaultSecretId,
     List<string> enviros, List<string> roles, string tenant, string project, string filePath)
 {
@@ -361,7 +385,6 @@ void ClearProjectConfig(string octoApiUri, string octoApiKey, string vaultUri, s
     ClearProjectConfig(new TenantTargetArgs(){ ... });
 }
 ```
-
 #### Deprecated Cake Targets
 
 ```csharp
