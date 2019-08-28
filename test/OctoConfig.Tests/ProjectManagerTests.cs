@@ -62,6 +62,33 @@ namespace OctoConfig.Tests
 		[Theory]
 		[InlineData("testProj", "aA", "g")]
 		[InlineData("testProj", "varName", "varValue")]
+		public async Task ProjectTemplatesShouldBeCreatedWithNewDefaultValues(string projectName, string variableName, string variableValue)
+		{
+			var project = new ProjectResource() { Id = projectName, Name = projectName };
+			var octoMoq = new Mock<IOctopusAsyncRepository>();
+			var mockProj = this.mockProj(projectName);
+			mockProj.Setup(t => t.Modify(It.IsAny<ProjectResource>()))
+				.Returns<ProjectResource>(prj =>
+				{
+					prj.Templates.Count.Should().Be(1);
+					prj.Templates.Single().Name.Should().Be(variableName);
+					prj.Templates.Single().Label.Should().Be(variableName);
+					prj.Templates.Single().HelpText.Should().Be(variableName);
+					prj.Templates.Single().DefaultValue.IsSensitive.Should().BeFalse();
+					prj.Templates.Single().DefaultValue.Value.Should().Be(variableValue);
+					return Task.FromResult(prj);
+				});
+			octoMoq.Setup(o => o.Projects).Returns(mockProj.Object);
+
+			var args = new ProjectArgsBase() { ProjectName = projectName };
+			var sut = new ProjectManager(args, octoMoq.Object, Mock.Of<ILogger>());
+
+			await sut.CreateProjectVariables(new List<SecretVariable>() { new SecretVariable(variableName, variableValue) }, true).ConfigureAwait(false);
+		}
+
+		[Theory]
+		[InlineData("testProj", "aA", "g")]
+		[InlineData("testProj", "varName", "varValue")]
 		public async Task SensitiveProjectTemplatesShouldBeCreatedToMatchVariables(string projectName, string variableName, string variableValue)
 		{
 			var project = new ProjectResource() { Id = projectName, Name = projectName };

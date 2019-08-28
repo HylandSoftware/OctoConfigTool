@@ -20,7 +20,7 @@ namespace OctoConfig.Tests
 		public class Constructor
 		{
 			[Theory, AppAutoData]
-			public void ContsructorGuardClauses(IFixture fixture)
+			public void ConstructorGuardClauses(IFixture fixture)
 			{
 				var assertion = new GuardClauseAssertion(fixture);
 				assertion.Verify(typeof(UploadTenantCommand).GetConstructors());

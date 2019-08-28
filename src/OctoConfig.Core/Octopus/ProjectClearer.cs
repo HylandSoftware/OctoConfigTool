@@ -5,7 +5,11 @@ using Octopus.Client;
 
 namespace OctoConfig.Core.Octopus
 {
-	public class ProjectClearer
+	public interface IProjectClearer
+	{
+		Task ClearProjectVariables();
+	}
+	public class ProjectClearer : IProjectClearer
 	{
 		private readonly IProjectArgsBase _args;
 		private readonly IOctopusAsyncRepository _octopusRepository;

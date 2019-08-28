@@ -15,12 +15,12 @@ namespace OctoConfig.Core.Octopus
 
 	public class ProjectManager : IProjectManager
 	{
-		private readonly ProjectArgsBase _args;
+		private readonly IProjectArgsBase _args;
 		private readonly IOctopusAsyncRepository _octopusRepository;
 		private readonly ILogger _logger;
 		private static readonly string _placeholder = "PLACEHOLDER_VALUE";
 
-		public ProjectManager(ProjectArgsBase args, IOctopusAsyncRepository octopusRepository, ILogger logger)
+		public ProjectManager(IProjectArgsBase args, IOctopusAsyncRepository octopusRepository, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_octopusRepository = octopusRepository ?? throw new ArgumentNullException(nameof(octopusRepository));

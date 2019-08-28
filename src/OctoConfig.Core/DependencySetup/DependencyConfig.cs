@@ -25,7 +25,7 @@ namespace OctoConfig.Core.DependencySetup
 			{
 				throw new ArgumentException("Null or empty Octopus Deploy API URI", nameof(args.OctoUri));
 			}
-			if (String.IsNullOrEmpty(args.ApiKey))
+			if(String.IsNullOrEmpty(args.ApiKey))
 			{
 				throw new ArgumentException("Null or empty Octopus Deploy API key", nameof(args.ApiKey));
 			}
@@ -68,8 +68,8 @@ namespace OctoConfig.Core.DependencySetup
 
 			coll.AddSingleton<ILibraryManager, LibraryManager>();
 			coll.AddSingleton<IProjectManager, ProjectManager>();
-			coll.AddSingleton<ProjectClearer>();
-			coll.AddSingleton<TenantClearer>();
+			coll.AddSingleton<IProjectClearer, ProjectClearer>();
+			coll.AddSingleton<ITenantClearer, TenantClearer>();
 			coll.AddSingleton<ITenantManager, TenantManager>();
 			coll.AddSingleton<VariableConverter>();
 
@@ -122,11 +122,11 @@ namespace OctoConfig.Core.DependencySetup
 					coll.AddSingleton(vtArgs);
 					coll.AddSingleton<TenantTargetArgs>(vtArgs);
 					break;
-				case TenantTargetArgs pAgs:
-					coll.AddSingleton(pAgs);
-					break;
 				case UploadProjectArgs upArgs:
 					coll.AddSingleton(upArgs);
+					break;
+				case TenantTargetArgs pAgs:
+					coll.AddSingleton(pAgs);
 					break;
 				default:
 					throw new ArgumentException($"Unknown argument type '{args.GetType()}'", nameof(args));

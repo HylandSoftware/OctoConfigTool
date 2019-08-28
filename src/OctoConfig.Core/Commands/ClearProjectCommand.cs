@@ -6,9 +6,9 @@ namespace OctoConfig.Core.Commands
 {
 	public class ClearProjectCommand
 	{
-		private readonly ProjectClearer _projectClearer;
+		private readonly IProjectClearer _projectClearer;
 
-		public ClearProjectCommand(ProjectClearer projectClearer)
+		public ClearProjectCommand(IProjectClearer projectClearer)
 		{
 			_projectClearer = projectClearer ?? throw new System.ArgumentNullException(nameof(projectClearer));
 		}
