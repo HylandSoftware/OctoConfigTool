@@ -166,6 +166,32 @@ upload-project --tenant "QA Infra" --project "Deploy API" --variableType Environ
 -f "C:\QA\appsettings.json" -e QA RC
 ```
 
+#### Targeting a Project Template
+
+This command takes the variables from the json file and creates project variable templates in the specified project.
+Variables that are not secret are created using their values in the json file as the default value.
+Variables that are secret are given no default value.
+
+Targeting a project has one additional argument
+
+- `-p`, `--project`
+  - The Octopus project to match Tenant variables with
+
+Targeting a project also has one optional argument
+
+- `-c`, `--clear`
+  - Clears the previous template before uploading new template
+
+Example:
+
+```bash
+upload-project-template --project "Deploy API" --variableType JsonConversion \
+-a "API-KEY" -p "API_" --vaultUri "http://vaultapi:8200" \
+--vaultRole "VAULT_PROVIDED_ROLE_GUID" --secret "VAULT_PROVIDED_ROLE_SECRET_GUID" \
+-f "C:\QA\appsettings.json" ---clear
+```
+
+
 #### Clearing a Project of Variable Templates
 
 Deletes **ALL** the variables templates in the specified project
