@@ -46,10 +46,6 @@ namespace OctoConfig.Tests
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
-				if (args.ClearProject)
-				{
-					mockClearer.Verify(m => m.ClearProjectVariables(), Times.Once);
-				}
 				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
 				mockProject.Verify(m => m.CreateProjectVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), true), Times.Once);
 			}
@@ -58,12 +54,22 @@ namespace OctoConfig.Tests
 			public async Task ProjectTemplateDoesNotClear(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
 				[Frozen] Mock<IProjectClearer> mockClearer, [Frozen] MockFileSystem mockFileSystem, [Frozen] UploadProjectArgs args, UploadProjectCommand sut)
 			{
+				args.ClearProject = false;
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
-				if (args.ClearProject)
-				{
-					mockClearer.Verify(m => m.ClearProjectVariables(), Times.Once);
-				}
+				mockClearer.Verify(m => m.ClearProjectVariables(), Times.Never);
+				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
+				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>(), true), Times.Once);
+			}
+
+			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
+			public async Task ProjectTemplateDoesClear(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
+				[Frozen] Mock<IProjectClearer> mockClearer, [Frozen] MockFileSystem mockFileSystem, [Frozen] UploadProjectArgs args, UploadProjectCommand sut)
+			{
+				args.ClearProject = true;
+				mockFileSystem.AddFile(args.File, new MockFileData(json));
+				await sut.Execute().ConfigureAwait(false);
+				mockClearer.Verify(m => m.ClearProjectVariables(), Times.Once);
 				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
 				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>(), true), Times.Once);
 			}
