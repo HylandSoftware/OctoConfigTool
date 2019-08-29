@@ -70,6 +70,14 @@ namespace OctoConfig.Cake
 		}
 
 		[CakeMethodAlias]
+		public static void UploadProject(this ICakeContext context, UploadProjectArgs args)
+		{
+			DependencyConfig.Setup(args, context).GetAwaiter().GetResult();
+			var cmd = DependencyConfig.Container.GetService<UploadProjectCommand>();
+			cmd.Execute().GetAwaiter().GetResult();
+		}
+
+		[CakeMethodAlias]
 		public static void ValidateTenantConfig(this ICakeContext context, ValidateTenantArgs args)
 		{
 			DependencyConfig.Setup(args, context).GetAwaiter().GetResult();

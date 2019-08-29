@@ -25,7 +25,7 @@ namespace OctoConfig.Core.DependencySetup
 			{
 				throw new ArgumentException("Null or empty Octopus Deploy API URI", nameof(args.OctoUri));
 			}
-			if (String.IsNullOrEmpty(args.ApiKey))
+			if(String.IsNullOrEmpty(args.ApiKey))
 			{
 				throw new ArgumentException("Null or empty Octopus Deploy API key", nameof(args.ApiKey));
 			}
@@ -68,8 +68,8 @@ namespace OctoConfig.Core.DependencySetup
 
 			coll.AddSingleton<ILibraryManager, LibraryManager>();
 			coll.AddSingleton<IProjectManager, ProjectManager>();
-			coll.AddSingleton<ProjectClearer>();
-			coll.AddSingleton<TenantClearer>();
+			coll.AddSingleton<IProjectClearer, ProjectClearer>();
+			coll.AddSingleton<ITenantClearer, TenantClearer>();
 			coll.AddSingleton<ITenantManager, TenantManager>();
 			coll.AddSingleton<VariableConverter>();
 
@@ -80,6 +80,7 @@ namespace OctoConfig.Core.DependencySetup
 			coll.AddSingleton<ClearTenantCommand>();
 			coll.AddSingleton<ClearProjectCommand>();
 			coll.AddSingleton<ValidateTenantCommand>();
+			coll.AddSingleton<UploadProjectCommand>();
 			Container = coll.BuildServiceProvider();
 		}
 
@@ -93,6 +94,15 @@ namespace OctoConfig.Core.DependencySetup
 			if(args is LibraryTargetArgs lArgs)
 			{
 				coll.AddSingleton(lArgs);
+			}
+			if (args is ProjectTargetArgs ptArgs)
+			{
+				coll.AddSingleton(ptArgs);
+				coll.AddSingleton<IProjectArgsBase>(new ProjectArgsBase { ProjectName = ptArgs.ProjectName });
+			}
+			if (args is ProjectArgsBase pbArgs)
+			{
+				coll.AddSingleton(pbArgs);
 			}
 			switch (args)
 			{
@@ -111,6 +121,9 @@ namespace OctoConfig.Core.DependencySetup
 				case ValidateTenantArgs vtArgs:
 					coll.AddSingleton(vtArgs);
 					coll.AddSingleton<TenantTargetArgs>(vtArgs);
+					break;
+				case UploadProjectArgs upArgs:
+					coll.AddSingleton(upArgs);
 					break;
 				case TenantTargetArgs pAgs:
 					coll.AddSingleton(pAgs);

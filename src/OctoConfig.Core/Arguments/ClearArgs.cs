@@ -8,11 +8,7 @@ namespace OctoConfig.Core.Arguments
 	}
 
 	[Verb("clear-project", HelpText = "Removes ALL the variable templates in the specified project")]
-	public class ClearProjectArgs : ArgsBase
-	{
-		[Option('p', "project", Required = true, HelpText = "The Octopus role(s) to scope variables to")]
-		public string ProjectName { get; set; }
-	}
+	public class ClearProjectArgs : ProjectArgsBase { }
 
 	[Verb("clear-tenant", HelpText = "Removes ALL the variables in the specified tenant")]
 	public class ClearTenantArgs : ArgsBase

@@ -166,6 +166,32 @@ upload-project --tenant "QA Infra" --project "Deploy API" --variableType Environ
 -f "C:\QA\appsettings.json" -e QA RC
 ```
 
+#### Targeting a Project Template
+
+This command takes the variables from the json file and creates project variable templates in the specified project.
+Variables that are not secret are created using their values in the json file as the default value.
+Variables that are secret are given no default value.
+
+Targeting a project has one additional argument
+
+- `-p`, `--project`
+  - The Octopus project to match Tenant variables with
+
+Targeting a project also has one optional argument
+
+- `-c`, `--clear`
+  - Clears the previous template before uploading new template
+
+Example:
+
+```bash
+upload-project-template --project "Deploy API" --variableType JsonConversion \
+-a "API-KEY" -p "API_" --vaultUri "http://vaultapi:8200" \
+--vaultRole "VAULT_PROVIDED_ROLE_GUID" --secret "VAULT_PROVIDED_ROLE_SECRET_GUID" \
+-f "C:\QA\appsettings.json" ---clear
+```
+
+
 #### Clearing a Project of Variable Templates
 
 Deletes **ALL** the variables templates in the specified project
@@ -328,6 +354,30 @@ void ClearTenantConfig(string octoApiUri, string octoApiKey, string vaultUri, st
     ClearTenantConfig(new TenantTargetArgs(){ ... });
 }
 
+
+```
+#### Cake Project Targets
+
+```csharp
+void UploadProjectJson(string octoApiUri, string octoApiKey, string vaultUri, string vaultRoleId, string vaultSecretId,
+    List<string> enviros, List<string> roles, string project, string filePath, string prefix, bool clear)
+{
+    Information($"Uploading {filePath}");
+    UploadProject(new UploadProjectArgs(){
+        File = filePath,
+        ApiKey = octoApiKey,
+        OctoUri = octoApiUri,
+        ProjectName = project,
+        Environments = enviros,
+        OctoRoles =  roles,
+        VaultUri = vaultUri,
+        VaultRoleId = vaultRoleId,
+        VaultSecretId = vaultSecretId,
+        VariableType = VariableType.JsonConversion,
+        Clear = clear
+    });
+}
+
 void ClearProjectConfig(string octoApiUri, string octoApiKey, string vaultUri, string vaultRoleId, string vaultSecretId,
     List<string> enviros, List<string> roles, string tenant, string project, string filePath)
 {
@@ -335,7 +385,6 @@ void ClearProjectConfig(string octoApiUri, string octoApiKey, string vaultUri, s
     ClearProjectConfig(new TenantTargetArgs(){ ... });
 }
 ```
-
 #### Deprecated Cake Targets
 
 ```csharp

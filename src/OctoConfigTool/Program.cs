@@ -11,8 +11,8 @@ namespace OctopusConfigTool
 	{
 		public static async Task<int> Main(string[] cmdArgs)
 		{
-			return await Parser.Default.ParseArguments<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, TenantTargetArgs, ClearProjectArgs, ClearTenantArgs>(cmdArgs)
-				.MapResult<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, TenantTargetArgs, ClearProjectArgs, ClearTenantArgs, Task<int>>(
+			return await Parser.Default.ParseArguments<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, TenantTargetArgs, UploadProjectArgs, ClearProjectArgs, ClearTenantArgs>(cmdArgs)
+				.MapResult<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, TenantTargetArgs, UploadProjectArgs, ClearProjectArgs, ClearTenantArgs, Task<int>>(
 				async validateArgs =>
 				{
 					await DependencyConfig.Setup(validateArgs).ConfigureAwait(false);
@@ -45,6 +45,13 @@ namespace OctopusConfigTool
 				{
 					await DependencyConfig.Setup(uploadTenantArgs).ConfigureAwait(false);
 					var cmd = DependencyConfig.Container.GetService<UploadTenantCommand>();
+					await cmd.Execute().ConfigureAwait(false);
+					return 0;
+				},
+				async uploadProjectArgs =>
+				{
+					await DependencyConfig.Setup(uploadProjectArgs).ConfigureAwait(false);
+					var cmd = DependencyConfig.Container.GetService<UploadProjectCommand>();
 					await cmd.Execute().ConfigureAwait(false);
 					return 0;
 				},
