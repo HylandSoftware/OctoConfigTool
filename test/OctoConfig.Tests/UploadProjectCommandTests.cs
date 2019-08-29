@@ -30,19 +30,8 @@ namespace OctoConfig.Tests
 		public class Execute
 		{
 			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
-			public async Task ApplyIsSetToFalse(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
-				[Frozen] Mock<IProjectClearer> mockClearer, [Frozen] MockFileSystem mockFileSystem, [Frozen] UploadProjectArgs args, UploadProjectCommand sut)
-			{
-				mockFileSystem.AddFile(args.File, new MockFileData(json));
-				await sut.Execute().ConfigureAwait(false);
-				mockClearer.Verify(m => m.ClearProjectVariables(), Times.Once);
-				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
-				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>(), true), Times.Once);
-			}
-
-			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
-			public async Task VariablesAreSetCorrectly(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
-				[Frozen] Mock<IProjectClearer> mockClearer, [Frozen] MockFileSystem mockFileSystem, [Frozen] UploadProjectArgs args, UploadProjectCommand sut)
+			public async Task ProjectVariablesAreSetCorrectly(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
+				[Frozen] MockFileSystem mockFileSystem, [Frozen] UploadProjectArgs args, UploadProjectCommand sut)
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
