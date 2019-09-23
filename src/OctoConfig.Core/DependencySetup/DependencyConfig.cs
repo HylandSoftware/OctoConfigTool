@@ -71,7 +71,7 @@ namespace OctoConfig.Core.DependencySetup
 			coll.AddSingleton<IProjectClearer, ProjectClearer>();
 			coll.AddSingleton<ITenantClearer, TenantClearer>();
 			coll.AddSingleton<ITenantManager, TenantManager>();
-			coll.AddSingleton<IVariableConverter, VariableConverter>();
+			coll.AddSingleton<VariableConverter>();
 
 			coll.AddSingleton<ValidateLibraryCommand>();
 			coll.AddSingleton<UploadLibraryCommand>();

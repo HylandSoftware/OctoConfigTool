@@ -16,12 +16,12 @@ namespace OctoConfig.Core.Commands
 		private readonly ValidateArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
 		private readonly ILibraryManager _libraryManager;
-		private readonly IVariableConverter _jsonValidator;
+		private readonly VariableConverter _jsonValidator;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
 		public ValidateLibraryCommand(ValidateArgs args, ISecretsMananger secretsMananger, ILibraryManager libraryManager,
-			IVariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
+			VariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));

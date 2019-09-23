@@ -8,7 +8,6 @@ using Moq;
 using OctoConfig.Core;
 using OctoConfig.Core.Arguments;
 using OctoConfig.Core.Commands;
-using OctoConfig.Core.Converter;
 using OctoConfig.Core.Octopus;
 using OctoConfig.Core.Secrets;
 using OctoConfig.Tests.TestFixture;
@@ -58,17 +57,6 @@ namespace OctoConfig.Tests
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
 				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1), args), Times.Once);
-			}
-
-			[Theory, AppAutoData]
-			public async Task CorrectValuesUsed(string json, [Frozen] Mock<ILibraryManager> mockLibraryManager,
-				[Frozen] MockFileSystem mockFileSystem, [Frozen] Mock<IVariableConverter> mockVariableConverter,
-				[Frozen] LibraryTargetArgs args, [Frozen] List<SecretVariable> secrets, UploadLibraryCommand sut)
-			{
-				mockVariableConverter.Setup(m => m.Convert(json)).Returns(secrets);
-				mockFileSystem.AddFile(args.File, new MockFileData(json));
-				await sut.Execute().ConfigureAwait(false);
-				mockLibraryManager.Verify(m => m.UpdateVars(secrets, It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>>(), true), Times.Once);
 			}
 		}
 	}

@@ -7,11 +7,7 @@ using OctoConfig.Core.DependencySetup;
 
 namespace OctoConfig.Core.Converter
 {
-	public interface IVariableConverter
-	{
-		List<SecretVariable> Convert(string json);
-	}
-	public class VariableConverter : IVariableConverter
+	public class VariableConverter
 	{
 		internal string _separator;
 		private readonly FileArgsBase _args;

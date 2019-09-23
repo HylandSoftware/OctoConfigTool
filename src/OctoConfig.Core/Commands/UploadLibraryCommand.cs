@@ -16,11 +16,11 @@ namespace OctoConfig.Core.Commands
 		private readonly LibraryTargetArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
 		private readonly ILibraryManager _libraryManager;
-		private readonly IVariableConverter _varConverter;
+		private readonly VariableConverter _varConverter;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
-		public UploadLibraryCommand(LibraryTargetArgs args, ISecretsMananger secretsMananger, ILibraryManager libraryMananger, IVariableConverter variableConverter, ILogger logger, IFileSystem fileSystem)
+		public UploadLibraryCommand(LibraryTargetArgs args, ISecretsMananger secretsMananger, ILibraryManager libraryMananger, VariableConverter variableConverter, ILogger logger, IFileSystem fileSystem)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));

@@ -15,12 +15,12 @@ namespace OctoConfig.Core.Commands
 		private readonly ValidateTenantArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
 		private readonly ITenantManager _tenantManager;
-		private readonly IVariableConverter _jsonValidator;
+		private readonly VariableConverter _jsonValidator;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
 		public ValidateTenantCommand(ValidateTenantArgs args, ISecretsMananger secretsMananger, ITenantManager tenantManager,
-			IVariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
+			VariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));

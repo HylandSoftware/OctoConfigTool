@@ -14,14 +14,14 @@ namespace OctoConfig.Core.Commands
 	{
 		private readonly UploadTenantArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
-		private readonly IVariableConverter _varConverter;
+		private readonly VariableConverter _varConverter;
 		private readonly IProjectManager _projectManager;
 		private readonly ITenantManager _tenantManager;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
 		public UploadTenantCommand(UploadTenantArgs args, ISecretsMananger secretsMananger, IProjectManager projectManager,
-			ITenantManager tenantManager, IVariableConverter variableConverter, IFileSystem fileSystem, ILogger logger)
+			ITenantManager tenantManager, VariableConverter variableConverter, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
