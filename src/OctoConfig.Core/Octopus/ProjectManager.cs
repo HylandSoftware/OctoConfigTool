@@ -10,7 +10,7 @@ namespace OctoConfig.Core.Octopus
 {
 	public interface IProjectManager
 	{
-		Task CreateProjectVariables(List<SecretVariable> vars, bool useValue = false);
+		Task CreateProjectVariables(IEnumerable<SecretVariable> vars, bool useVariableValueAsDefault = false);
 	}
 
 	public class ProjectManager : IProjectManager
@@ -27,7 +27,7 @@ namespace OctoConfig.Core.Octopus
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
-		public async Task CreateProjectVariables(List<SecretVariable> vars, bool useValue = false)
+		public async Task CreateProjectVariables(IEnumerable<SecretVariable> vars, bool useVariableValueAsDefault = false)
 		{
 			var project = await _octopusRepository.ValidateProject(_args.ProjectName).ConfigureAwait(false);
 			var before = project.Templates.Count;
@@ -40,7 +40,7 @@ namespace OctoConfig.Core.Octopus
 				}
 				else
 				{
-					var value = useValue ? variable.Value : _placeholder;
+					var value = useVariableValueAsDefault ? variable.Value : _placeholder;
 					project.AddOrUpdateSingleLineTextTemplate(variable.Name, variable.Name, value, variable.Name);
 				}
 			}

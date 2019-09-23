@@ -79,15 +79,18 @@ namespace OctoConfig.Tests
 			await DependencyConfig.Setup(args, null, mockColl.Object, false).ConfigureAwait(false);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(ValidateTenantArgs))), Times.Once);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(TenantTargetArgs))), Times.Once);
+			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(IProjectArgsBase))), Times.Once);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(FileArgsBase))), Times.Once);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(ArgsBase))), Times.Once);
 		}
 
 		[Theory, AppAutoData]
-		public async Task TenantTargetArgsAddedAndSubTypes(Mock<IServiceCollection> mockColl, TenantTargetArgs args)
+		public async Task TenantTargetArgsAddedAndSubTypes(Mock<IServiceCollection> mockColl, UploadTenantArgs args)
 		{
 			await DependencyConfig.Setup(args, null, mockColl.Object, false).ConfigureAwait(false);
+			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(UploadTenantArgs))), Times.Once);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(TenantTargetArgs))), Times.Once);
+			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(IProjectArgsBase))), Times.Once);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(FileArgsBase))), Times.Once);
 			mockColl.Verify(m => m.Add(It.Is<ServiceDescriptor>(s => s.ServiceType == typeof(ArgsBase))), Times.Once);
 		}

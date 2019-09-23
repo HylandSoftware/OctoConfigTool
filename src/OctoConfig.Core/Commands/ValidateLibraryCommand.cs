@@ -16,12 +16,12 @@ namespace OctoConfig.Core.Commands
 		private readonly ValidateArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
 		private readonly ILibraryManager _libraryManager;
-		private readonly VariableConverter _jsonValidator;
+		private readonly IVariableConverter _jsonValidator;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
 		public ValidateLibraryCommand(ValidateArgs args, ISecretsMananger secretsMananger, ILibraryManager libraryManager,
-			VariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
+			IVariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
@@ -35,7 +35,7 @@ namespace OctoConfig.Core.Commands
 		{
 			var vars = _jsonValidator.Convert(_fileSystem.File.ReadAllText(_args.File));
 
-			await _secretsMananger.ReplaceSecrets(vars).ConfigureAwait(false);
+			await _secretsMananger.ReplaceSecrets(vars, _args).ConfigureAwait(false);
 			await _libraryManager.UpdateVars(vars, _args.Library, _args.Environments, _args.OctoRoles, apply: false).ConfigureAwait(false);
 
 			var secretCount = vars.Count(s => s.IsSecret);

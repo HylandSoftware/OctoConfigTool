@@ -15,12 +15,12 @@ namespace OctoConfig.Core.Commands
 		private readonly ValidateTenantArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
 		private readonly ITenantManager _tenantManager;
-		private readonly VariableConverter _jsonValidator;
+		private readonly IVariableConverter _jsonValidator;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
 		public ValidateTenantCommand(ValidateTenantArgs args, ISecretsMananger secretsMananger, ITenantManager tenantManager,
-			VariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
+			IVariableConverter jsonValidator, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
@@ -34,7 +34,7 @@ namespace OctoConfig.Core.Commands
 		{
 			var vars = _jsonValidator.Convert(_fileSystem.File.ReadAllText(_args.File));
 
-			await _secretsMananger.ReplaceSecrets(vars).ConfigureAwait(false);
+			await _secretsMananger.ReplaceSecrets(vars, _args).ConfigureAwait(false);
 			await _tenantManager.CreateTenantVariables(vars, apply: false).ConfigureAwait(false);
 
 			var secretCount = vars.Count(s => s.IsSecret);

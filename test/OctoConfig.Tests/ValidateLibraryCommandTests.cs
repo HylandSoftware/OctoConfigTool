@@ -35,7 +35,7 @@ namespace OctoConfig.Tests
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
-				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
+				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>(), args), Times.Once);
 				mockLibrary.Verify(m => m.UpdateVars(It.IsAny<List<SecretVariable>>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>>(), It.Is<bool>(b => !b)), Times.Once);
 			}
 
@@ -45,7 +45,7 @@ namespace OctoConfig.Tests
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
-				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
+				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1), args), Times.Once);
 				mockLibrary.Verify(m => m.UpdateVars(It.Is<List<SecretVariable>>(l => l.Count == 1), It.IsAny<string>(), It.IsAny<IEnumerable<string>>(), It.IsAny<IEnumerable<string>>(), It.Is<bool>(b => !b)), Times.Once);
 			}
 		}

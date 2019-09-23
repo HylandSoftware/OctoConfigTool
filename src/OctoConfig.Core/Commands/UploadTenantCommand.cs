@@ -12,16 +12,16 @@ namespace OctoConfig.Core.Commands
 {
 	public class UploadTenantCommand
 	{
-		private readonly TenantTargetArgs _args;
+		private readonly UploadTenantArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
-		private readonly VariableConverter _varConverter;
+		private readonly IVariableConverter _varConverter;
 		private readonly IProjectManager _projectManager;
 		private readonly ITenantManager _tenantManager;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
-		public UploadTenantCommand(TenantTargetArgs args, ISecretsMananger secretsMananger, IProjectManager projectManager,
-			ITenantManager tenantManager, VariableConverter variableConverter, IFileSystem fileSystem, ILogger logger)
+		public UploadTenantCommand(UploadTenantArgs args, ISecretsMananger secretsMananger, IProjectManager projectManager,
+			ITenantManager tenantManager, IVariableConverter variableConverter, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
@@ -35,9 +35,11 @@ namespace OctoConfig.Core.Commands
 		public async Task Execute()
 		{
 			var vars = _varConverter.Convert(_fileSystem.File.ReadAllText(_args.File));
-
-			await _secretsMananger.ReplaceSecrets(vars).ConfigureAwait(false);
-			await _projectManager.CreateProjectVariables(vars).ConfigureAwait(false);
+			await _secretsMananger.ReplaceSecrets(vars, _args).ConfigureAwait(false);
+			if (!_args.SkipUploadProject)
+			{
+				await _projectManager.CreateProjectVariables(vars).ConfigureAwait(false);
+			}
 			await _tenantManager.CreateTenantVariables(vars).ConfigureAwait(false);
 
 			var secretCount = vars.Count(s => s.IsSecret);

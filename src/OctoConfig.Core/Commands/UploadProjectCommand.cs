@@ -15,14 +15,14 @@ namespace OctoConfig.Core.Commands
 	{
 		private readonly UploadProjectArgs _args;
 		private readonly ISecretsMananger _secretsMananger;
-		private readonly VariableConverter _varConverter;
+		private readonly IVariableConverter _varConverter;
 		private readonly IProjectManager _projectManager;
 		private readonly IProjectClearer _projectClearer;
 		private readonly IFileSystem _fileSystem;
 		private readonly ILogger _logger;
 
 		public UploadProjectCommand(UploadProjectArgs args, ISecretsMananger secretsMananger, IProjectManager projectManager,
-			IProjectClearer projectClearer, VariableConverter variableConverter, IFileSystem fileSystem, ILogger logger)
+			IProjectClearer projectClearer, IVariableConverter variableConverter, IFileSystem fileSystem, ILogger logger)
 		{
 			_args = args ?? throw new ArgumentNullException(nameof(args));
 			_secretsMananger = secretsMananger ?? throw new ArgumentNullException(nameof(secretsMananger));
@@ -40,7 +40,7 @@ namespace OctoConfig.Core.Commands
 			{
 				await _projectClearer.ClearProjectVariables();
 			}
-			await _secretsMananger.ReplaceSecrets(vars).ConfigureAwait(false);
+			await _secretsMananger.ReplaceSecrets(vars, _args).ConfigureAwait(false);
 			await _projectManager.CreateProjectVariables(vars, true);
 
 			var secretCount = vars.Count(s => s.IsSecret);

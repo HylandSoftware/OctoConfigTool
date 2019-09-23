@@ -71,7 +71,7 @@ namespace OctoConfig.Core.DependencySetup
 			coll.AddSingleton<IProjectClearer, ProjectClearer>();
 			coll.AddSingleton<ITenantClearer, TenantClearer>();
 			coll.AddSingleton<ITenantManager, TenantManager>();
-			coll.AddSingleton<VariableConverter>();
+			coll.AddSingleton<IVariableConverter, VariableConverter>();
 
 			coll.AddSingleton<ValidateLibraryCommand>();
 			coll.AddSingleton<UploadLibraryCommand>();
@@ -104,6 +104,10 @@ namespace OctoConfig.Core.DependencySetup
 			{
 				coll.AddSingleton(pbArgs);
 			}
+			if (args is TenantTargetArgs tArgs)
+			{
+				coll.AddSingleton(tArgs);
+			}
 			switch (args)
 			{
 				case ClearVariableSetArgs cArgs:
@@ -120,13 +124,12 @@ namespace OctoConfig.Core.DependencySetup
 					break;
 				case ValidateTenantArgs vtArgs:
 					coll.AddSingleton(vtArgs);
-					coll.AddSingleton<TenantTargetArgs>(vtArgs);
 					break;
 				case UploadProjectArgs upArgs:
 					coll.AddSingleton(upArgs);
 					break;
-				case TenantTargetArgs pAgs:
-					coll.AddSingleton(pAgs);
+				case UploadTenantArgs utArgs:
+					coll.AddSingleton(utArgs);
 					break;
 				default:
 					throw new ArgumentException($"Unknown argument type '{args.GetType()}'", nameof(args));

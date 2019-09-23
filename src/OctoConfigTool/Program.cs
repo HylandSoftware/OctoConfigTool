@@ -11,8 +11,8 @@ namespace OctopusConfigTool
 	{
 		public static async Task<int> Main(string[] cmdArgs)
 		{
-			return await Parser.Default.ParseArguments<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, TenantTargetArgs, UploadProjectArgs, ClearProjectArgs, ClearTenantArgs>(cmdArgs)
-				.MapResult<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, TenantTargetArgs, UploadProjectArgs, ClearProjectArgs, ClearTenantArgs, Task<int>>(
+			return await Parser.Default.ParseArguments<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, UploadTenantArgs, UploadProjectArgs, ClearProjectArgs, ClearTenantArgs>(cmdArgs)
+				.MapResult<ValidateArgs, ClearVariableSetArgs, LibraryTargetArgs, ValidateTenantArgs, UploadTenantArgs, UploadProjectArgs, ClearProjectArgs, ClearTenantArgs, Task<int>>(
 				async validateArgs =>
 				{
 					await DependencyConfig.Setup(validateArgs).ConfigureAwait(false);

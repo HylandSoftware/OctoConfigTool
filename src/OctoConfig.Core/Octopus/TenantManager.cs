@@ -11,7 +11,7 @@ namespace OctoConfig.Core.Octopus
 {
 	public interface ITenantManager
 	{
-		Task CreateTenantVariables(List<SecretVariable> vars, bool apply = true);
+		Task CreateTenantVariables(IEnumerable<SecretVariable> vars, bool apply = true);
 	}
 
 	public class TenantManager : ITenantManager
@@ -27,7 +27,7 @@ namespace OctoConfig.Core.Octopus
 			_logger = logger ?? throw new ArgumentNullException(nameof(logger));
 		}
 
-		public async Task CreateTenantVariables(List<SecretVariable> vars, bool apply = true)
+		public async Task CreateTenantVariables(IEnumerable<SecretVariable> vars, bool apply = true)
 		{
 			var project = await _octopusRepository.ValidateProject(_args.ProjectName).ConfigureAwait(false);
 			var tenant = await _octopusRepository.ValidateTenant(_args.TenantName).ConfigureAwait(false);

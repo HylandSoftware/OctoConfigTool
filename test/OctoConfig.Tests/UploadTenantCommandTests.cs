@@ -30,23 +30,55 @@ namespace OctoConfig.Tests
 		public class Execute
 		{
 			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
-			public async Task ApplyIsSetToFalse(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
-				[Frozen] MockFileSystem mockFileSystem, [Frozen] TenantTargetArgs args, UploadTenantCommand sut)
+			public async Task ApplyIsSetToTrue(string json, [Frozen] Mock<ITenantManager> mockTenantManager,
+				[Frozen] MockFileSystem mockFileSystem, [Frozen] UploadTenantArgs args, UploadTenantCommand sut)
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
-				mockSecret.Verify(m => m.ReplaceSecrets(It.IsAny<List<SecretVariable>>()), Times.Once);
-				mockProject.Verify(m => m.CreateProjectVariables(It.IsAny<List<SecretVariable>>(), false), Times.Once);
+				mockTenantManager.Verify(m => m.CreateTenantVariables(It.IsAny<List<SecretVariable>>(), true), Times.Once);
 			}
 
 			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
-			public async Task VariablesAreSetCorrectly(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] Mock<IProjectManager> mockProject,
-				[Frozen] MockFileSystem mockFileSystem, [Frozen] TenantTargetArgs args, UploadTenantCommand sut)
+			public async Task VariablesAreSetCorrectly(string json, [Frozen] Mock<ITenantManager> mockTenantManager,
+				[Frozen] MockFileSystem mockFileSystem, [Frozen] UploadTenantArgs args, UploadTenantCommand sut)
 			{
 				mockFileSystem.AddFile(args.File, new MockFileData(json));
 				await sut.Execute().ConfigureAwait(false);
-				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1)), Times.Once);
+				mockTenantManager.Verify(m => m.CreateTenantVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), true), Times.Once);
+			}
+
+			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
+			public async Task ProjectVariablesAreSetCorrectly(string json, [Frozen] Mock<IProjectManager> mockProject,
+				[Frozen] Mock<ITenantManager> mockTenantManager, [Frozen] MockFileSystem mockFileSystem, [Frozen] UploadTenantArgs args, UploadTenantCommand sut)
+			{
+				args.SkipUploadProject = false;
+				mockFileSystem.AddFile(args.File, new MockFileData(json));
+				await sut.Execute().ConfigureAwait(false);
 				mockProject.Verify(m => m.CreateProjectVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), false), Times.Once);
+				mockTenantManager.Verify(m => m.CreateTenantVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), true), Times.Once);
+			}
+
+			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
+			public async Task ProjectVariablesAreNotSet(string json, [Frozen] Mock<IProjectManager> mockProject,
+				[Frozen] Mock<ITenantManager> mockTenantManager, [Frozen] MockFileSystem mockFileSystem, [Frozen] UploadTenantArgs args, UploadTenantCommand sut)
+			{
+				args.SkipUploadProject = true;
+				mockFileSystem.AddFile(args.File, new MockFileData(json));
+				await sut.Execute().ConfigureAwait(false);
+				mockProject.Verify(m => m.CreateProjectVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), false), Times.Never);
+				mockTenantManager.Verify(m => m.CreateTenantVariables(It.Is<List<SecretVariable>>(l => l.Count == 1), true), Times.Once);
+			}
+
+			[Theory, InlineAppAutoData("{ \"a\":\"b\" }")]
+			public async Task SecretsAreReplaced(string json, [Frozen] Mock<ISecretsMananger> mockSecret, [Frozen] MockFileSystem mockFileSystem,
+				[Frozen] UploadTenantArgs args, UploadTenantCommand sut)
+			{
+				args.VaultRoleId = "RoleId";
+				args.VaultSecretId = "SecretId";
+				args.VaultUri = "Uri";
+				mockFileSystem.AddFile(args.File, new MockFileData(json));
+				await sut.Execute().ConfigureAwait(false);
+				mockSecret.Verify(m => m.ReplaceSecrets(It.Is<List<SecretVariable>>(l => l.Count == 1), args), Times.Once);
 			}
 		}
 	}

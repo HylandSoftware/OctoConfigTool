@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using OctoConfig.Core.Arguments;
 
 namespace OctoConfig.Core.Secrets
 {
 	public interface ISecretsMananger
 	{
-		Task ReplaceSecrets(List<SecretVariable> vars);
+		Task ReplaceSecrets(List<SecretVariable> vars, IVaultArgs vaultArgs);
 	}
 
 	public class SecretsMananger : ISecretsMananger
@@ -22,22 +23,30 @@ namespace OctoConfig.Core.Secrets
 		/// Updates each matching item to be marked as IsSecret
 		/// </summary>
 		/// <param name="vars">Variables to run the replacement on</param>
-		/// <param name="apply">Actually store the value of the variable in the list. Mark as 'false' to only do verification</param>
-		public async Task ReplaceSecrets(List<SecretVariable> vars)
+		/// <param name="vaultArgs">Vault parameters used to grab the secrets</param>
+		public async Task ReplaceSecrets(List<SecretVariable> vars, IVaultArgs vaultArgs)
 		{
-			foreach(var item in vars)
+			if (vaultIsConfigured(vaultArgs))
 			{
-				var evaluated = item.Value;
-				while (hasSecret(evaluated))
+				foreach (var item in vars)
 				{
-					item.IsSecret = true;
-					var justVariable = getNextSecret(evaluated);
-					(var prefix, var path) = splitSecretAndPrefix(justVariable);
-					var secret = await _providerFact.Create(prefix).GetSecret(path).ConfigureAwait(false);
-					evaluated = evaluated.Replace($"#{{{justVariable}}}", secret);
+					var evaluated = item.Value;
+					while (hasSecret(evaluated))
+					{
+						item.IsSecret = true;
+						var justVariable = getNextSecret(evaluated);
+						(var prefix, var path) = splitSecretAndPrefix(justVariable);
+						var secret = await _providerFact.Create(prefix).GetSecret(path).ConfigureAwait(false);
+						evaluated = evaluated.Replace($"#{{{justVariable}}}", secret);
+					}
+					item.Value = evaluated;
 				}
-				item.Value = evaluated;
 			}
+		}
+
+		private bool vaultIsConfigured(IVaultArgs vaultArgs)
+		{
+			return vaultArgs != null && vaultArgs.VaultRoleId != null && vaultArgs.VaultSecretId != null && vaultArgs.VaultUri != null;
 		}
 
 		private bool hasSecret(string variable)

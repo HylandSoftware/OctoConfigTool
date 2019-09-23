@@ -62,7 +62,7 @@ namespace OctoConfig.Cake
 		}
 
 		[CakeMethodAlias]
-		public static void UploadTenant(this ICakeContext context, TenantTargetArgs args)
+		public static void UploadTenant(this ICakeContext context, UploadTenantArgs args)
 		{
 			DependencyConfig.Setup(args, context).GetAwaiter().GetResult();
 			var cmd = DependencyConfig.Container.GetService<UploadTenantCommand>();

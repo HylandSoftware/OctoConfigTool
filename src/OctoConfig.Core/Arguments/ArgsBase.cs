@@ -29,7 +29,18 @@ namespace OctoConfig.Core.Arguments
 		public string ProjectName { get; set; }
 	}
 
-	public class FileArgsBase : ArgsBase
+	public interface IVaultArgs
+	{
+		string VaultUri { get; set; }
+
+		string VaultRoleId { get; set; }
+
+		string VaultSecretId { get; set; }
+
+		string MountPoint { get; set; }
+	}
+
+	public class FileArgsBase : ArgsBase, IVaultArgs
 	{
 		[Option('f', "file", Required = true, HelpText = "The json file to parse into variables")]
 		public string File { get; set; }
@@ -52,7 +63,7 @@ namespace OctoConfig.Core.Arguments
 		[Option(longName: "variableType", HelpText = "The type of Octopus variables to convert the json file into", Required = true)]
 		public VariableType VariableType { get; set; }
 
-		[Option('p', "prefix", Required = false, HelpText = "A Prefix to prepend to variables", Default = "")]
+		[Option(longName: "prefix", Required = false, HelpText = "A Prefix to prepend to variables", Default = "")]
 		public string Prefix { get; set; }
 	}
 }
